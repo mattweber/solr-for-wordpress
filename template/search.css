@@ -132,6 +132,8 @@ div.solr_results_headerR {
 	width: 35% !important;
 	font-weight: bold !important;
 	float: right !important;
+	z-index: 100; 
+	height: 2em;
 }
 .solr_sort {
 	margin: 4px 4px 0 0 !important;
@@ -145,8 +147,9 @@ ol.solr_sort2 {
 	float: right !important;
 }
 .solr_sort2 li {
-	display: block !important; /* FF3 */
+	/*display: block !important;*/ /* FF3 */
 	padding: 2px 2px 2px 4px !important;
+	width: 90px;
 }
 .solr_sort2 li:hover {
 	background: #efffb0 !important;
@@ -230,7 +233,6 @@ div.solr_noresult {
 .solr_HL {
 	background: #efffb0 !important;
 }
-
 .solr_admin {
 	font-size: 14px;
 	color: #464646;
@@ -271,7 +273,6 @@ div.solr_noresult {
 	left: 0;
 	padding: 5px 0 0 32px;
 }
-
 .solr_admin ol li ol li {
 	font-size: 12px;
 	line-height: 1.2;
@@ -280,13 +281,11 @@ div.solr_noresult {
 	list-style-position: outside;
 	padding: 1px 0;
 }
-
 .solr_admin_tab1 {
 	border: 1px solid #cccccc;
 	-moz-border-radius-topleft:6px;
 	-webkit-border-top-left-radius:6px;
 }
-
 .solr_admin_tab2 {
 	border-right: 1px solid #cccccc;
 	border-bottom: 1px solid #cccccc;
@@ -294,7 +293,6 @@ div.solr_noresult {
 	-moz-border-radius-bottomleft:6px;
 	-webkit-border-bottom-left-radius:6px;
 }
-
 .solr_admin_tab2 h4 {
 	font-size: 18px;
 }
@@ -303,17 +301,14 @@ div.solr_noresult {
 	float: right;
 	width: 65%;
 }
-
 li.solr_admin_on {
 	color: #464646;
 	background: #ffffff;
 	border-right: 1px solid #eeeeee;
 }
-
 li.solr_admin_on li {
 	color: #464646;
 }
-
 .solr_adminR1, .solr_adminR2 {
 	border: 1px solid #cccccc;
 	-moz-border-radius-topright:6px;

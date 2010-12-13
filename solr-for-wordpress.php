@@ -1023,9 +1023,16 @@ function s4w_admin_head() {
     var $j = jQuery.noConflict();
     
     function switch1() {
-        if ($j('#solrconnect').is(':checked')) {
+        if ($j('#powconnect').is(':checked')) {
+            $j('#solr_admin_tab1').css('display', 'block');
+            $j('#solr_admin_tab2').css('display', 'none');
+            $j('#solr_admin_tab1_btn').addClass('solr_admin_on');
+            $j('#solr_admin_tab2_btn').removeClass('solr_admin_on');
+        } else if ($j('#solrconnect').is(':checked')) {
             $j('#solr_admin_tab2').css('display', 'block');
-            $j('#solr_admin_tab2_btn').addClass('solr_admin_on');         
+            $j('#solr_admin_tab1').css('display', 'none');
+            $j('#solr_admin_tab2_btn').addClass('solr_admin_on');
+            $j('#solr_admin_tab1_btn').removeClass('solr_admin_on');          
         }
     }
     

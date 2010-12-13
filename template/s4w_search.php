@@ -42,13 +42,25 @@ Template Name: Search
 				} ?>
 
 			</div>
+			
+			
+			<script type="text/javascript">
+			jQuery(document).ready(function(){
+					jQuery('.solr_sort2').hover(
+						
+						function() { jQuery('.solr_sort2 li:gt(0)').css('display', 'block'); },
+						function() { jQuery('.solr_sort2 li:gt(0)').css('display', 'none'); });
+						
+				});
+			</script>
+						
 			<div class="solr_results_headerR">
 				<ol class="solr_sort2">
-					<li class="solr_sort_drop"><a href="<?php echo $results['sorting']['scoredesc'] ?>">Relevance<span></span></a></li>					
-					<li><a href="<?php echo $results['sorting']['datedesc'] ?>">Newest</a></li>					
-					<li><a href="<?php echo $results['sorting']['dateasc'] ?>">Oldest</a></li>					
-					<li><a href="<?php echo $results['sorting']['commentsdesc'] ?>">Most Comments</a></li>					
-					<li><a href="<?php echo $results['sorting']['commentsasc'] ?>">Least Comments</a></li>					
+					<li class="solr_sort_drop headlink"><a href="<?php echo $results['sorting']['scoredesc'] ?>">Relevance<span></span></a></li>																			
+					<li id="foo" style="display:none;"><a href="<?php echo $results['sorting']['datedesc'] ?>">Newest</a></li>					
+					<li style="display:none;"><a href="<?php echo $results['sorting']['dateasc'] ?>">Oldest</a></li>					
+					<li style="display:none;"><a href="<?php echo $results['sorting']['commentsdesc'] ?>">Most Comments</a></li>					
+					<li style="display:none;"><a href="<?php echo $results['sorting']['commentsasc'] ?>">Least Comments</a></li>					
 				</ol>
 				<div class="solr_sort">Sort by:</div>
 			</div>
@@ -67,7 +79,8 @@ Template Name: Search
 					foreach($results['results'] as $result) {
 							printf("<li onclick=\"window.location='%s'\">\n", $result['permalink']);
 							printf("<h2><a href='%s'>%s</a></h2>\n", $result['permalink'], $result['title']);
-							printf("<p>%s <a href='%s'>(comment match)</a></p>\n", $result['teaser'], $result['comment_link']);
+							//printf("<p>%s <a href='%s'>(comment match)</a></p>\n", $result['teaser'], $result['comment_link']);
+							printf("<p>%s</p>\n", $result['teaser']);
 							printf("<label> By <a href='%s'>%s</a> in %s %s - <a href='%s'>%s comments</a></label>\n", 
 							            $result['authorlink'], 
 							            $result['author'], 
