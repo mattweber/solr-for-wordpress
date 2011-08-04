@@ -42,10 +42,9 @@ if (version_compare($wp_version, '3.0', '<')) {
 require_once(dirname(__FILE__) . '/Apache/Solr/Service.php');
 
 function s4w_get_option($option) {
-    $indexall = false;
+    $indexall = FALSE;
     if (is_multisite()) {
-        //$indexall = get_site_option('s4w_index_all_sites');
-        $indexall = false;
+        $indexall = get_site_option('s4w_index_all_sites');
     }
     
     if ($indexall) {
@@ -56,10 +55,9 @@ function s4w_get_option($option) {
 }
 
 function s4w_update_option($option, $optval) {
-    $indexall = false;
+    $indexall = FALSE;
     if (is_multisite()) {
-        //$indexall = get_site_option('s4w_index_all_sites');
-        $indexall = false;
+        $indexall = get_site_option('s4w_index_all_sites');
     }
     
     if ($indexall) {
@@ -69,7 +67,7 @@ function s4w_update_option($option, $optval) {
     }
 }
 
-function s4w_get_solr($ping = false) {
+function s4w_get_solr($ping = FALSE) {
     # get the connection options
     $host = s4w_get_option('s4w_solr_host');
     $port = s4w_get_option('s4w_solr_port');
@@ -127,7 +125,7 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
             $doc->setField( 'blogid', $blogid );
             $doc->setField( 'blogdomain', $domain );
             $doc->setField( 'blogpath', $path );
-            $doc->setField( 'wp', 'wpmu');
+            $doc->setField( 'wp', 'multisite');
         } else {
             $doc->setField( 'id', $post_info->ID );
             $doc->setField( 'permalink', get_permalink( $post_info->ID ) );
@@ -158,7 +156,7 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         if ( ! $categories == NULL ) {
             foreach( $categories as $category ) {
                 if ($categoy_as_taxonomy) {
-                    $doc->addField('categories', get_category_parents($category->cat_ID, false, '^^'));
+                    $doc->addField('categories', get_category_parents($category->cat_ID, FALSE, '^^'));
                 } else {
                     $doc->addField('categories', $category->cat_name);
                 }
@@ -184,7 +182,7 @@ function s4w_format_date( $thedate ) {
     return preg_replace($datere, $replstr, $thedate);
 }
 
-function s4w_post( $documents, $commit = true, $optimize = false) { 
+function s4w_post( $documents, $commit = TRUE, $optimize = FALSE) { 
     try {
         $solr = s4w_get_solr();
         if ( ! $solr == NULL ) {
@@ -259,7 +257,7 @@ function s4w_load_blog_all($blogid) {
     $cnt = 0;
     $batchsize = 10;
     
-    $bloginfo = get_blog_details($blogid, false);
+    $bloginfo = get_blog_details($blogid, FALSE);
     
     if ($bloginfo->public && !$bloginfo->archived && !$bloginfo->spam && !$bloginfo->deleted) {
         $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$blogid}_posts WHERE post_status = 'publish';");
@@ -288,7 +286,7 @@ function s4w_handle_modified( $post_id ) {
     
     if (($index_pages && $post_info->post_type == 'page') || ($index_posts && $post_info->post_type == 'post')) {
         
-        # make sure this blog is not private or a spam if indexing on wpmu
+        # make sure this blog is not private or a spam if indexing on a multisite install
         if (is_multisite() && ($current_blog->public != 1 || $current_blog->spam == 1 || $current_blog->archived == 1)) {
             return;
         }
@@ -373,15 +371,14 @@ function s4w_load_all_posts($prev) {
     $cnt = 0;
     $batchsize = 100;
     $last = "";
-    $found = false;
-    $end = false;
+    $found = FALSE;
+    $end = FALSE;
     $percent = 0;
     
-    //if (is_multisite() && get_site_option('s4w_index_all_sites')) {
-    if (is_multisite() && false) {
-        $bloglist = get_blog_list(0, "all");
+    if (is_multisite() && get_site_option('s4w_index_all_sites')) {
+        $bloglist = $wpdb->get_col("SELECT * FROM {$wpdb->base_prefix}blogs", 0);
         foreach ($bloglist as $bloginfo) {
-            $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo['blog_id']}_posts WHERE post_status = 'publish' AND post_type = 'post' ORDER BY ID;");
+            $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo->blog_id}_posts WHERE post_status = 'publish' AND post_type = 'post' ORDER BY ID;");
             $postcount = count($postids);
             for ($idx = 0; $idx < $postcount; $idx++) {
                 
@@ -390,20 +387,20 @@ function s4w_load_all_posts($prev) {
                 $percent = (floatval($idx) / floatval($postcount)) * 100;
                 if ($prev && !$found) {
                     if ($postid === $prev) {
-                        $found = true;
+                        $found = TRUE;
                     }
                     
                     continue;
                 }
                 
                 if ($idx === $postcount - 1) {
-                    $end = true;
+                    $end = TRUE;
                 }
                 
-                $documents[] = s4w_build_document( get_blog_post($bloginfo['blog_id'], $postid), $bloginfo['domain'], $bloginfo['path'] );
+                $documents[] = s4w_build_document( get_blog_post($bloginfo->blog_id, $postid), $bloginfo->domain, $bloginfo->path );
                 $cnt++;
                 if ($cnt == $batchsize) {
-                    s4w_post( $documents, false, false);
+                    s4w_post( $documents, FALSE, FALSE);
                     $cnt = 0;
                     $documents = array();
                     break;
@@ -419,20 +416,20 @@ function s4w_load_all_posts($prev) {
             $percent = (floatval($idx) / floatval($postcount)) * 100;
             if ($prev && !$found) {
                 if ($postid === $prev) {
-                    $found = true;
+                    $found = TRUE;
                 }
                 
                 continue;
             }
             
             if ($idx === $postcount - 1) {
-                $end = true;
+                $end = TRUE;
             }
             
             $documents[] = s4w_build_document( get_post($postid) );
             $cnt++;
             if ($cnt == $batchsize) {
-                s4w_post( $documents, false, false);
+                s4w_post( $documents, FALSE, FALSE);
                 $cnt = 0;
                 $documents = array();
                 break;
@@ -441,11 +438,11 @@ function s4w_load_all_posts($prev) {
     }
     
     if ( $documents ) {
-        s4w_post( $documents , false, false);
+        s4w_post( $documents , FALSE, FALSE);
     }
     
     if ($end) {
-        s4w_post(false, true, false);
+        s4w_post(FALSE, TRUE, FALSE);
         printf("{\"type\": \"post\", \"last\": \"%s\", \"end\": true, \"percent\": \"%.2f\"}", $last, $percent);
     } else {
         printf("{\"type\": \"post\", \"last\": \"%s\", \"end\": false, \"percent\": \"%.2f\"}", $last, $percent);
@@ -458,15 +455,15 @@ function s4w_load_all_pages($prev) {
     $cnt = 0;
     $batchsize = 100;
     $last = "";
-    $found = false;
-    $end = false;
+    $found = FALSE;
+    $end = FALSE;
     $percent = 0;
     
     //if (is_multisite() && get_site_option('s4w_index_all_sites')) {
-    if (is_multisite() && false) {
-        $bloglist = get_blog_list(0, "all");
+    if (is_multisite() && FALSE) {
+        $bloglist = $wpdb->get_col("SELECT * FROM {$wpdb->base_prefix}blogs", 0);
         foreach ($bloglist as $bloginfo) {
-            $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo['blog_id']}_posts WHERE post_status = 'publish' AND post_type = 'page' ORDER BY ID;");
+            $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo->blog_id}_posts WHERE post_status = 'publish' AND post_type = 'page' ORDER BY ID;");
             $postcount = count($postids);
             for ($idx = 0; $idx < $postcount; $idx++) {
                 $postid = $postids[$idx]->ID;
@@ -474,20 +471,20 @@ function s4w_load_all_pages($prev) {
                 $percent = (floatval($idx) / floatval($postcount)) * 100;
                 if ($prev && !$found) {
                     if ($postid === $prev) {
-                        $found = true;
+                        $found = TRUE;
                     }
                     
                     continue;
                 }
                 
                 if ($idx === $postcount - 1) {
-                    $end = true;
+                    $end = TRUE;
                 }
                 
-                $documents[] = s4w_build_document( get_blog_post($bloginfo['blog_id'], $postid), $bloginfo['domain'], $bloginfo['path'] );
+                $documents[] = s4w_build_document( get_blog_post($bloginfo->blog_id, $postid), $bloginfo->domain, $bloginfo->path );
                 $cnt++;
                 if ($cnt == $batchsize) {
-                    s4w_post( $documents, false, false);
+                    s4w_post( $documents, FALSE, FALSE);
                     $cnt = 0;
                     $documents = array();
                     break;
@@ -503,20 +500,20 @@ function s4w_load_all_pages($prev) {
             $percent = (floatval($idx) / floatval($pagecount)) * 100;
             if ($prev && !$found) {
                 if ($pageid === $prev) {
-                    $found = true;
+                    $found = TRUE;
                 }
                 
                 continue;
             }
             
             if ($idx === $pagecount - 1) {
-                $end = true;
+                $end = TRUE;
             }
             
             $documents[] = s4w_build_document( get_post($pageid) );
             $cnt++;
             if ($cnt == $batchsize) {
-                s4w_post( $documents, false, false);
+                s4w_post( $documents, FALSE, FALSE);
                 $cnt = 0;
                 $documents = array();
                 break;
@@ -525,11 +522,11 @@ function s4w_load_all_pages($prev) {
     }
     
     if ($documents) {
-        s4w_post( $documents, false, false);
+        s4w_post( $documents, FALSE, FALSE);
     }
     
     if ($end) {
-        s4w_post(false, true, false);
+        s4w_post(FALSE, TRUE, FALSE);
         printf("{\"type\": \"page\", \"last\": \"%s\", \"end\": true, \"percent\": \"%.2f\"}", $last, $percent);
     } else {
         printf("{\"type\": \"page\", \"last\": \"%s\", \"end\": false, \"percent\": \"%.2f\"}", $last, $percent);
@@ -976,16 +973,15 @@ function s4w_filter_list2str($input) {
 }
 
 function s4w_add_pages() {
-    $addpage = false;
+    $addpage = FALSE;
     
     if (is_multisite() && is_site_admin()) {
-        //$indexall = get_site_option('s4w_index_all_sites');
-        $indexall = false;
+        $indexall = get_site_option('s4w_index_all_sites');
         if (($indexall && is_main_blog()) || !$indexall) {
-            $addpage = true;
+            $addpage = TRUE;
         }
     } else if (!is_multisite() && is_admin()) {
-        $addpage = true;
+        $addpage = TRUE;
     }
     
     if ($addpage) {
@@ -1061,14 +1057,14 @@ function s4w_admin_head() {
             $j(this).after($percentspan);
             disableAll();
             doLoad("post", null);
-            return false;
+            return FALSE;
         });
         
         $j('[name=s4w_pageload]').click(function() {
             $j(this).after($percentspan);
             disableAll();
             doLoad("page", null);
-            return false;
+            return FALSE;
         });
     });
     
@@ -1104,7 +1100,7 @@ function s4w_template_redirect() {
     $search = stripos($_SERVER['REQUEST_URI'], '?s=');
     $autocomplete = stripos($_SERVER['REQUEST_URI'], '?method=autocomplete');
 
-    if ( ($search || $autocomplete) == false ) {
+    if ( ($search || $autocomplete) == FALSE ) {
         return;
     }
     
@@ -1266,14 +1262,13 @@ add_action( 'widgets_init', 's4w_mlt_widget');
 add_action( 'wp_head', 's4w_autosuggest_head');
 add_action( 'admin_head', 's4w_admin_head');
 
-#wpmu actions
 if (is_multisite()) {
-    //add_action( 'deactivate_blog', 's4w_handle_deactivate_blog');
-    //add_action( 'activate_blog', 's4w_handle_activate_blog');
-    //add_action( 'archive_blog', 's4w_handle_archive_blog');
-    //add_action( 'unarchive_blog', 's4w_handle_unarchive_blog');
-    //add_action( 'make_spam_blog', 's4w_handle_spam_blog');
-    //add_action( 'unspam_blog', 's4w_handle_unspam_blog');
+    add_action( 'deactivate_blog', 's4w_handle_deactivate_blog');
+    add_action( 'activate_blog', 's4w_handle_activate_blog');
+    add_action( 'archive_blog', 's4w_handle_archive_blog');
+    add_action( 'unarchive_blog', 's4w_handle_unarchive_blog');
+    add_action( 'make_spam_blog', 's4w_handle_spam_blog');
+    add_action( 'unspam_blog', 's4w_handle_unspam_blog');
     add_action( 'delete_blog', 's4w_handle_delete_blog');
     add_action( 'wpmu_new_blog', 's4w_handle_new_blog');
 }
