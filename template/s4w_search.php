@@ -18,7 +18,7 @@ Template Name: Search
             } ?>
 
             <form name="searchbox" method="get" id="searchbox" action="">
-			    <input id="qrybox" name="s" type="text" class="solr_field" value="<?= $results['query'] ?>"/><input id="searchbtn" type="submit" value="Search" />
+			    <input id="qrybox" name="s" type="text" class="solr_field" value="<?php echo $results['query'] ?>"/><input id="searchbtn" type="submit" value="Search" />
             </form>
 		</div>
 
