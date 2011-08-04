@@ -877,7 +877,7 @@ function s4w_query( $qry, $offset, $count, $fq, $sortby) {
     
     if ( $solr ) {
         $params = array();
-        $params['qt'] = 'dismax';
+        $params['defType'] = 'dismax';
         $params['qf'] = 'tagssrch^5 title^10 categoriessrch^5 content^3.5 comments^1.5';
         $params['pf'] = 'title^15 text^10';
         $params['facet'] = 'true';
