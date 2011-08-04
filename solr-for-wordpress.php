@@ -30,24 +30,12 @@ Author URI: http://www.mattweber.org
     THE SOFTWARE.
 */
 
-global $wp_version, $version, $wpmu_version;
+global $wp_version, $version
 
 $version = '0.4.0';
 
-# check if the plugin is running under wpmu
-function is_wpmu() {
-    global $wpmu_version;
-    return isset($wpmu_version);
-}
-
-# do version checking here
-$wpver = $wp_version;
-if (is_wpmu()) {
-    $wpver = $wpmu_version;
-}
-    
 $errmsg = __('Solr for WordPress requires WordPress 3.0 or greater. ', 'solr4wp');
-if (version_compare($wpver, '3.0', '<')) {
+if (version_compare($wp_version, '3.0', '<')) {
     exit ($errmsg);
 }
 
@@ -55,7 +43,7 @@ require_once(dirname(__FILE__) . '/Apache/Solr/Service.php');
 
 function s4w_get_option($option) {
     $indexall = false;
-    if (is_wpmu()) {
+    if (is_multisite()) {
         //$indexall = get_site_option('s4w_index_all_sites');
         $indexall = false;
     }
@@ -69,7 +57,7 @@ function s4w_get_option($option) {
 
 function s4w_update_option($option, $optval) {
     $indexall = false;
-    if (is_wpmu()) {
+    if (is_multisite()) {
         //$indexall = get_site_option('s4w_index_all_sites');
         $indexall = false;
     }
@@ -115,9 +103,9 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
     if ($post_info) {
         
         # check if we need to exclude this document
-        if (is_wpmu() && in_array($current_blog->domain . $current_blog->path . $post_info->ID, $exclude_ids)) {
+        if (is_multisite() && in_array($current_blog->domain . $current_blog->path . $post_info->ID, $exclude_ids)) {
             return NULL;
-        } else if ( !is_wpmu() && in_array($post_info->ID, $exclude_ids) ) {
+        } else if ( !is_multisite() && in_array($post_info->ID, $exclude_ids) ) {
             return NULL;
         }
         
@@ -125,7 +113,7 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         $auth_info = get_userdata( $post_info->post_author );
         
         # wpmu specific info
-        if (is_wpmu()) {
+        if (is_multisite()) {
             
             if ($domain == NULL)
                 $domain = $current_blog->domain;
@@ -301,7 +289,7 @@ function s4w_handle_modified( $post_id ) {
     if (($index_pages && $post_info->post_type == 'page') || ($index_posts && $post_info->post_type == 'post')) {
         
         # make sure this blog is not private or a spam if indexing on wpmu
-        if (is_wpmu() && ($current_blog->public != 1 || $current_blog->spam == 1 || $current_blog->archived == 1)) {
+        if (is_multisite() && ($current_blog->public != 1 || $current_blog->spam == 1 || $current_blog->archived == 1)) {
             return;
         }
         
@@ -323,7 +311,7 @@ function s4w_handle_status_change( $post_id ) {
     if ( ($private_page && $post_info->post_type == 'page') || ($private_post && $post_info->post_type == 'post') ) {
         if ( ($_POST['prev_status'] == 'publish' || $_POST['original_post_status'] == 'publish') && 
                 ($post_info->post_status == 'draft' || $post_info->post_status == 'private') ) {
-                    if (is_wpmu()) {
+                    if (is_multisite()) {
                         s4w_delete( $current_blog->domain . $current_blog->path . $post_info->ID );
                     } else {
                         s4w_delete( $post_info->ID );
@@ -339,7 +327,7 @@ function s4w_handle_delete( $post_id ) {
     $delete_post = s4w_get_option('s4w_delete_post');
     
     if ( ($delete_page && $post_info->post_type == 'page') || ($delete_post && $post_info->post_type == 'post') ) {
-        if (is_wpmu()) {
+        if (is_multisite()) {
             s4w_delete( $current_blog->domain . $current_blog->path . $post_info->ID );
         } else {
             s4w_delete( $post_info->ID );
@@ -389,8 +377,8 @@ function s4w_load_all_posts($prev) {
     $end = false;
     $percent = 0;
     
-    //if (is_wpmu() && get_site_option('s4w_index_all_sites')) {
-    if (is_wpmu() && false) {
+    //if (is_multisite() && get_site_option('s4w_index_all_sites')) {
+    if (is_multisite() && false) {
         $bloglist = get_blog_list(0, "all");
         foreach ($bloglist as $bloginfo) {
             $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo['blog_id']}_posts WHERE post_status = 'publish' AND post_type = 'post' ORDER BY ID;");
@@ -474,8 +462,8 @@ function s4w_load_all_pages($prev) {
     $end = false;
     $percent = 0;
     
-    //if (is_wpmu() && get_site_option('s4w_index_all_sites')) {
-    if (is_wpmu() && false) {
+    //if (is_multisite() && get_site_option('s4w_index_all_sites')) {
+    if (is_multisite() && false) {
         $bloglist = get_blog_list(0, "all");
         foreach ($bloglist as $bloginfo) {
             $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo['blog_id']}_posts WHERE post_status = 'publish' AND post_type = 'page' ORDER BY ID;");
@@ -990,13 +978,13 @@ function s4w_filter_list2str($input) {
 function s4w_add_pages() {
     $addpage = false;
     
-    if (is_wpmu() && is_site_admin()) {
+    if (is_multisite() && is_site_admin()) {
         //$indexall = get_site_option('s4w_index_all_sites');
         $indexall = false;
         if (($indexall && is_main_blog()) || !$indexall) {
             $addpage = true;
         }
-    } else if (!is_wpmu() && is_admin()) {
+    } else if (!is_multisite() && is_admin()) {
         $addpage = true;
     }
     
@@ -1279,7 +1267,7 @@ add_action( 'wp_head', 's4w_autosuggest_head');
 add_action( 'admin_head', 's4w_admin_head');
 
 #wpmu actions
-if (is_wpmu()) {
+if (is_multisite()) {
     //add_action( 'deactivate_blog', 's4w_handle_deactivate_blog');
     //add_action( 'activate_blog', 's4w_handle_activate_blog');
     //add_action( 'archive_blog', 's4w_handle_archive_blog');
