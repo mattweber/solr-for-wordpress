@@ -4,12 +4,12 @@ Plugin Name: Solr for WordPress
 Plugin URI: http://wordpress.org/extend/plugins/solr-for-wordpress/
 Donate link: http://www.mattweber.org
 Description: Indexes, removes, and updates documents in the Solr search engine.
-Version: 0.3.0
+Version: 0.4.0
 Author: Matt Weber
 Author URI: http://www.mattweber.org
 */
 /*  
-    Copyright (c) 2009 Matt Weber
+    Copyright (c) 2011 Matt Weber
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ Author URI: http://www.mattweber.org
 
 global $wp_version, $version, $wpmu_version;
 
-$version = '0.3.0';
+$version = '0.4.0';
 
 # check if the plugin is running under wpmu
 function is_wpmu() {
@@ -46,8 +46,8 @@ if (is_wpmu()) {
     $wpver = $wpmu_version;
 }
     
-$errmsg = __('Solr for WordPress requires WordPress or WPMU 2.8 or greater. ', 'solr4wp');
-if (version_compare($wpver, '2.8', '<')) {
+$errmsg = __('Solr for WordPress requires WordPress 3.0 or greater. ', 'solr4wp');
+if (version_compare($wpver, '3.0', '<')) {
     exit ($errmsg);
 }
 
