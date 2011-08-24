@@ -111,6 +111,7 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
     $exclude_ids = s4w_get_option('s4w_exclude_pages');
     $categoy_as_taxonomy = s4w_get_option('s4w_cat_as_taxo');
     $index_comments = s4w_get_option('s4w_index_comments');
+    $index_custom_fields = s4w_get_option('s4w_index_custom_fields');
     
     if ($post_info) {
         
@@ -182,6 +183,17 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
             foreach( $tags as $tag ) {
                 $doc->addField('tags', $tag->name);
             }
+        }
+
+        if (count($index_custom_fields)>0) {
+        	$custom_fields = get_post_custom($post_info->ID);
+        	foreach ( $index_custom_fields as $field_name ) {
+        		$field = $custom_fields[$field_name];
+  				foreach ( $field as $key => $value ) {
+  					$doc->addField($field_name . '_str', $value);
+  					$doc->addField($field_name . '_srch', $value);
+  				}
+        	}
         }
     } else {
         _e('Post Information is NULL', 'solr4wp');
@@ -625,7 +637,7 @@ function s4w_search_results() {
         if ($fqitem) {
             $splititm = split(':', $fqitem, 2);
             $selectedfacet = array();
-            $selectedfacet['name'] = sprintf(__("%s:%s"), ucwords($splititm[0]), str_replace("^^", "/", $splititm[1]));
+            $selectedfacet['name'] = sprintf(__("%s:%s"), ucwords(preg_replace('/_str$/i', '', $splititm[0])), str_replace("^^", "/", $splititm[1]));
             $removelink = '';
             foreach($fqitms as $fqitem2) {
                 if ($fqitem2 && !($fqitem2 === $fqitem)) {
@@ -707,7 +719,7 @@ function s4w_search_results() {
                         
                         $facetinfo = array();
                         $facetitms = array();
-                        $facetinfo['name'] = ucwords($facetfield);
+                        $facetinfo['name'] = ucwords(preg_replace('/_str$/i', '', $facetfield));
                         
                         # categories is a taxonomy
                         if ($categoy_as_taxonomy && $facetfield == 'categories') {
@@ -875,10 +887,17 @@ function s4w_query( $qry, $offset, $count, $fq, $sortby) {
       $facet_fields[] = 'type';
     }
     
+    $facet_on_custom_fields = s4w_get_option('s4w_facet_on_custom_fields');
+    if (count($facet_on_custom_fields)>0) {
+        foreach ( $facet_on_custom_fields as $field_name ) {
+        	$facet_fields[] = $field_name . '_str';
+        }
+    }   	
+    
     if ( $solr ) {
         $params = array();
         $params['defType'] = 'dismax';
-        $params['qf'] = 'tagssrch^5 title^10 categoriessrch^5 content^3.5 comments^1.5';
+        $params['qf'] = 'tagssrch^5 title^10 categoriessrch^5 content^3.5 comments^1.5'; // TODO : Add "_srch" custom fields ?
         $params['pf'] = 'title^15 text^10';
         $params['facet'] = 'true';
         $params['facet.field'] = $facet_fields;
@@ -951,6 +970,8 @@ function s4w_options_init() {
     register_setting( 's4w-options-group', 's4w_index_all_sites', 'absint' );
     register_setting( 's4w-options-group', 's4w_enable_dym', 'absint' );
     register_setting( 's4w-options-group', 's4w_connect_type', 'wp_filter_nohtml_kses' );
+    register_setting( 's4w-options-group', 's4w_index_custom_fields', 's4w_filter_str2list' );
+    register_setting( 's4w-options-group', 's4w_facet_on_custom_fields', 's4w_filter_str2list' );    
 }
 
 function s4w_filter_str2list_numeric($input) {
@@ -969,7 +990,7 @@ function s4w_filter_str2list_numeric($input) {
 
 function s4w_filter_str2list($input) {
     $final = array();
-    if ($input != "NA") {
+    if ($input != "NA" && $input != "") {
         foreach( split(',', $input) as $val ) {
             $final[] = trim($val);
         }
@@ -979,9 +1000,13 @@ function s4w_filter_str2list($input) {
 }
 
 function s4w_filter_list2str($input) {
+	if (!is_array($input)) {
+		return "NA";    // why not just "" ?
+	}
+	
     $outval = implode(',', $input);
     if (!$outval) {
-        $outval = "NA";
+        $outval = "NA"; // why not just "" ?
     }
     
     return $outval;
