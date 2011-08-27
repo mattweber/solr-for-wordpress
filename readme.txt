@@ -1,12 +1,12 @@
 === Solr for WordPress ===
 Contributors: mattweber
 Author URI: http://www.mattweber.org
-Plugin URI: http://wordpress.org/extend/plugins/solr-for-wordpress/
+Plugin URI: https://github.com/mattweber/solr-for-wordpress
 Donate link: http://www.mattweber.org
 Tags: solr, search, search results, search integration, custom search 
-Requires at least: 2.8.0
-Tested up to: 2.8.0
-Stable tag: 0.2.0
+Requires at least: 3.0
+Tested up to: 3.2.1
+Stable tag: 0.4.0
 
 A WordPress plugin that replaces the default WordPress search with Solr.
 
@@ -16,6 +16,8 @@ A WordPress plugin that replaces the default WordPress search with Solr.  Featur
 
 *	Index pages and posts
 *	Enable faceting on fields such as tags, categories, author, and page type.
+*   Indexing and faceting on custom fields
+*   Multisite support
 *	Treat the category facet as a taxonomy
 *	Add special template tags so you can create your own custom result pages to match your theme.
 *   Completely replaces default WordPress search, just install and configure.
@@ -44,15 +46,24 @@ A WordPress plugin that replaces the default WordPress search with Solr.  Featur
 
 = What version of WordPress does Solr for WordPress work with? =
 
-Solr for WordPress works with WordPress 2.7.0 and greater.
+Solr for WordPress works with WordPress 3.0 and greater.
 
 = What version of Solr is required. =
 
-Solr 1.3 or greater.
+Solr 1.4 or greater.
 
-= Can I enabledis/disable specific facets. =
+= Can I enable/disable specific facets. =
 
 Yes, from the settings page.  Uncheck the "Facet on FIELD" option, for the FIELD you don't want a facet for.
+
+= Do I need to run my own Solr server to use this plugin? =
+
+No, there are Solr hosting providers that will setup and manager Solr for you.  As long as they allow custom schema's and support the 
+standard Solr http api, then the plugin should work.  Some sites:
+
+http://www.mysolrserver.com/
+http://www.websolr.com/
+http://powcloud.com/
 
 = What is a taxonomy =
 
@@ -115,3 +126,7 @@ Login to the WordPress admin, select pages, click the page you want to exclude. 
 
 1. Configuration Page
 2. Example of results page in default WordPress Theme
+
+== Credits ==
+
+Dominique Bejean for custom field support.
