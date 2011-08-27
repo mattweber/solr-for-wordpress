@@ -116,6 +116,9 @@
         <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
 
         <!-- dynamic fields -->
+        <dynamicField name="*_str"  type="string"  indexed="true"  stored="true" multiValued="true"/>
+        <dynamicField name="*_srch"  type="text_lws"  indexed="true"  stored="false" multiValued="true"/>
+
         <dynamicField name="*_i"  type="sint"    indexed="true"  stored="true"/>
         <dynamicField name="*_s"  type="string"  indexed="true"  stored="true"/>
         <dynamicField name="*_l"  type="slong"   indexed="true"  stored="true"/>
