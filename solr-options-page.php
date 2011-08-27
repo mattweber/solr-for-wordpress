@@ -36,7 +36,8 @@ if (s4w_get_option('s4w_solr_initialized') != '1') {
     s4w_update_option('s4w_output_info', '1');
     s4w_update_option('s4w_output_pager', '1');
     s4w_update_option('s4w_output_facets', '1');
-    s4w_update_option('s4w_exclude_pages', array());
+    //s4w_update_option('s4w_exclude_pages', array());
+    s4w_update_option('s4w_exclude_pages', 'NA');  // why not just "" ?
     s4w_update_option('s4w_num_results', '5');
     s4w_update_option('s4w_cat_as_taxo', '1');
     s4w_update_option('s4w_solr_initialized', '1');
@@ -48,6 +49,10 @@ if (s4w_get_option('s4w_solr_initialized') != '1') {
     s4w_update_option('s4w_enable_dym', '1');
     s4w_update_option('s4w_index_comments', '1');
     s4w_update_option('s4w_connect_type', 'solr');
+    //s4w_update_option('s4w_index_custom_fields', array());
+    //s4w_update_option('s4w_facet_on_custom_fields', array());
+    s4w_update_option('s4w_index_custom_fields', 'NA');  // why not just "" ?
+    s4w_update_option('s4w_facet_on_custom_fields', 'NA');   // why not just "" ?
 }
 
 wp_reset_vars(array('action'));
@@ -61,8 +66,9 @@ if ($_POST['action'] == 'update') {
                      's4w_private_post', 's4w_output_info', 's4w_output_pager', 's4w_output_facets',
                      's4w_exclude_pages', 's4w_num_results', 's4w_cat_as_taxo', 's4w_max_display_tags',
                      's4w_facet_on_categories', 's4w_facet_on_tags', 's4w_facet_on_author', 's4w_facet_on_type',
-                     's4w_enable_dym', 's4w_index_comments', 's4w_connect_type', 's4w_index_all_sites');
-    
+                     's4w_enable_dym', 's4w_index_comments', 's4w_connect_type', 's4w_index_all_sites', 
+                     's4w_index_custom_fields', 's4w_facet_on_custom_fields');
+        
     foreach ( $options as $option ) {
         $option = trim($option);
         $value = null;
@@ -197,8 +203,12 @@ if ($_POST['s4w_ping']) {
     }
     ?>
     <tr valign="top">
-        <th scope="row"><?php _e('Excludes (see readme.txt for format)', 'solr4wp') ?></th>
-        <td><input type="text" name="s4w_exclude_pages" value="<?php _e(s4w_filter_list2str(s4w_get_option('s4w_exclude_pages')), 'solr4wp'); ?>" /></td>
+        <th scope="row"><?php _e('Index custom fields (comma separated names list)') ?></th>
+        <td><input type="text" name="s4w_index_custom_fields" value="<?php print( s4w_filter_list2str(s4w_get_option('s4w_index_custom_fields'), 'solr4wp')); ?>" /></td>
+    </tr>
+    <tr valign="top">
+        <th scope="row"><?php _e('Excludes Posts or Pages (comma separated ids list)') ?></th>
+        <td><input type="text" name="s4w_exclude_pages" value="<?php print( s4w_filter_list2str(s4w_get_option('s4w_exclude_pages'), 'solr4wp')); ?>" /></td>
     </tr>
 </table>
 <hr />
@@ -230,6 +240,11 @@ if ($_POST['s4w_ping']) {
         <td style="width:10px;float:left;"><input type="checkbox" name="s4w_facet_on_author" value="1" <?php echo s4w_checkCheckbox('s4w_facet_on_author'); ?> /></td>
         <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Type as Facet', 'solr4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="s4w_facet_on_type" value="1" <?php echo s4w_checkCheckbox('s4w_facet_on_type'); ?> /></td>
+    </tr>
+
+    <tr valign="top">
+        <th scope="row"><?php _e('Custom fields as Facet (comma separated ordered names list)') ?></th>
+        <td><input type="text" name="s4w_facet_on_custom_fields" value="<?php print( s4w_filter_list2str(s4w_get_option('s4w_facet_on_custom_fields'), 'solr4wp')); ?>" /></td>
     </tr>
 
     <tr valign="top">
