@@ -21,94 +21,87 @@
     THE SOFTWARE.
 */
 
-#set defaults if not initialized
-if (s4w_get_option('s4w_solr_initialized') != '1') {
-    update_site_option('s4w_index_all_sites', '0');
-    s4w_update_option('s4w_solr_host', 'localhost');
-    s4w_update_option('s4w_solr_port', '8983');
-    s4w_update_option('s4w_solr_path', '/solr');
-    s4w_update_option('s4w_index_pages', '1');
-    s4w_update_option('s4w_index_posts', '1');
-    s4w_update_option('s4w_delete_page', '1');
-    s4w_update_option('s4w_delete_post', '1');
-    s4w_update_option('s4w_private_page', '1');
-    s4w_update_option('s4w_private_post', '1');
-    s4w_update_option('s4w_output_info', '1');
-    s4w_update_option('s4w_output_pager', '1');
-    s4w_update_option('s4w_output_facets', '1');
-    //s4w_update_option('s4w_exclude_pages', array());
-    s4w_update_option('s4w_exclude_pages', '');  
-    s4w_update_option('s4w_num_results', '5');
-    s4w_update_option('s4w_cat_as_taxo', '1');
-    s4w_update_option('s4w_solr_initialized', '1');
-    s4w_update_option('s4w_max_display_tags', '10');
-    s4w_update_option('s4w_facet_on_categories', '1');
-    s4w_update_option('s4w_facet_on_taxonomy', '1');
-    s4w_update_option('s4w_facet_on_tags', '1');
-    s4w_update_option('s4w_facet_on_author', '1');
-    s4w_update_option('s4w_facet_on_type', '1');
-    s4w_update_option('s4w_enable_dym', '1');
-    s4w_update_option('s4w_index_comments', '1');
-    s4w_update_option('s4w_connect_type', 'solr');
-    //s4w_update_option('s4w_index_custom_fields', array());
-    //s4w_update_option('s4w_facet_on_custom_fields', array());
-    s4w_update_option('s4w_index_custom_fields', '');  
-    s4w_update_option('s4w_facet_on_custom_fields', '');  
-}
+//get the plugin settings
+$s4w_settings = s4w_get_option('plugin_s4w_settings');
 
+#set defaults if not initialized
+if ( $s4w_settings['s4w_solr_initialized'] != 1) {
+    $options['s4w_index_all_sites'] = 0;
+    $options['s4w_solr_host'] = 'localhost';
+    $options['s4w_solr_port'] = 8983;
+    $options['s4w_solr_path'] = '/solr';
+    $options['s4w_index_pages'] = 1;
+    $options['s4w_index_posts'] = 1;
+    $options['s4w_delete_page'] = 1;
+    $options['s4w_delete_post'] = 1;
+    $options['s4w_private_page'] = 1;
+    $options['s4w_private_post'] = 1;
+    $options['s4w_output_info'] = 1;
+    $options['s4w_output_pager'] = 1;
+    $options['s4w_output_facets'] = 1;
+    //$options['s4w_exclude_pages', array());
+    $options['s4w_exclude_pages'] = '';  
+    $options['s4w_num_results'] = 5;
+    $options['s4w_cat_as_taxo'] = 1;
+    $options['s4w_solr_initialized'] = 1;
+    $options['s4w_max_display_tags'] = 10;
+    $options['s4w_facet_on_categories'] = 1;
+    $options['s4w_facet_on_taxonomy'] = 1;
+    $options['s4w_facet_on_tags'] = 1;
+    $options['s4w_facet_on_author'] = 1;
+    $options['s4w_facet_on_type'] = 1;
+    $options['s4w_enable_dym'] = 1;
+    $options['s4w_index_comments'] = 1;
+    $options['s4w_connect_type'] = 'solr';
+    //$options['s4w_index_custom_fields', array());
+    //$options['s4w_facet_on_custom_fields', array());
+    $options['s4w_index_custom_fields'] = '';  
+    $options['s4w_facet_on_custom_fields'] = '';  
+    //save our options array
+    s4w_update_option('plugin_s4w_settings', $options);
+}
 wp_reset_vars(array('action'));
 
 # save form settings if we get the update action
 # we do saving here instead of using options.php because we need to use
 # s4w_update_option instead of update option.
-if ($_POST['action'] == 'update') {
-    $options = array('s4w_solr_host', 's4w_solr_port', 's4w_solr_path', 's4w_index_pages',
-                     's4w_index_posts', 's4w_delete_page', 's4w_delete_post', 's4w_private_page',
-                     's4w_private_post', 's4w_output_info', 's4w_output_pager', 's4w_output_facets',
-                     's4w_exclude_pages', 's4w_num_results', 's4w_cat_as_taxo', 's4w_max_display_tags',
-                     's4w_facet_on_categories', 's4w_facet_on_tags', 's4w_facet_on_author', 's4w_facet_on_type',
-                     's4w_enable_dym', 's4w_index_comments', 's4w_connect_type', 's4w_index_all_sites', 
-                     's4w_index_custom_fields', 's4w_facet_on_custom_fields', 's4w_facet_on_taxonomy');
-        
-    foreach ( $options as $option ) {
-        $option = trim($option);
-        $value = null;
-        if ( isset($_POST[$option]) )
-            $value = $_POST[$option];
-            
-        if ( !is_array($value) ) $value = trim($value);
-        $value = stripslashes_deep($value);
-        
-        if ( $option == 's4w_index_all_sites') {   
-            update_site_option($option, $value);
-        } else {
-            s4w_update_option($option, $value);
-        }
-    }
+# As it stands we have 27 options instead of making 27 insert calls (which is what update_options does)
+# Lets create an array of all our options and save it once.
+if ($_POST['action'] == 'update') { 
+  krumo($_POST);
+  //lets loop through our setting fields $_POST['settings']
+  foreach ( $_POST['settings'] as $option => $value ) {
+    krumo($option);
+    $option = trim($option);
+    if ( !is_array($value) ) $value = trim($value);
     
-    ?>
-    <div id="message" class="updated fade"><p><strong><?php _e('Success!', 'solr4wp') ?></strong></p></div>
-    <?php
+    $value = stripslashes_deep($value);
+    $option_settings[$option] = $value;
+  
+  }    
+  //lets save our options array
+  s4w_update_option('plugin_s4w_settings', $_POST['settings']);
+
+
+  ?>
+  <div id="message" class="updated fade"><p><strong><?php _e('Success!', 'solr4wp') ?></strong></p></div>
+  <?php
 }
 
 # checks if we need to check the checkbox
-function s4w_checkCheckbox( $theFieldname ) {
-    if ($theFieldname == 's4w_index_all_sites') {
-        if (get_site_option($theFieldname) == '1') {
-            echo 'checked="checked"';
-        }
-    } else {
-	    if( s4w_get_option( $theFieldname ) == '1'){
-		    echo 'checked="checked"';
-	    }
-	}
+function s4w_checkCheckbox( $fieldValue ) {
+  if( $fieldValue == '1'){
+    echo 'checked="checked"';
+  }
 }
 
-function s4w_checkConnectOption($connectType) {
-    if ( s4w_get_option('s4w_connect_type') === $connectType ) {
+function s4w_checkConnectOption($optionType, $connectType) {
+    if ( $optionType === $connectType ) {
         echo 'checked="checked"';
     }
 }
+
+
 
 # check for any POST settings
 if ($_POST['s4w_ping']) {
@@ -144,18 +137,18 @@ if ($_POST['s4w_ping']) {
 	<div class="solr_adminR">
 		<div class="solr_adminR2" id="solr_admin_tab2">
 			<label><?php _e('Solr Host', 'solr4wp') ?></label>
-			<p><input type="text" name="s4w_solr_host" value="<?php _e(s4w_get_option('s4w_solr_host'), 'solr4wp'); ?>" /></p>
+			<p><input type="text" name="settings[s4w_solr_host]" value="<?php _e($s4w_settings['s4w_solr_host'], 'solr4wp'); ?>" /></p>
 			<label><?php _e('Solr Port', 'solr4wp') ?></label>
-			<p><input type="text" name="s4w_solr_port" value="<?php _e(s4w_get_option('s4w_solr_port'), 'solr4wp'); ?>" /></p>
+			<p><input type="text" name="settings[s4w_solr_port]" value="<?php _e($s4w_settings['s4w_solr_port'], 'solr4wp'); ?>" /></p>
 			<label><?php _e('Solr Path', 'solr4wp') ?></label>
-			<p><input type="text" name="s4w_solr_path" value="<?php _e(s4w_get_option('s4w_solr_path'), 'solr4wp'); ?>" /></p>
+			<p><input type="text" name="settings[s4w_solr_path]" value="<?php _e($s4w_settings['s4w_solr_path'], 'solr4wp'); ?>" /></p>
 		</div>
 	</div>
 	<ol>
 		<li id="solr_admin_tab1_btn" class="solr_admin_tab1">
 		</li>
 		<li id="solr_admin_tab2_btn" class="solr_admin_tab2">
-			<h4><input id="solrconnect" name="s4w_connect_type" type="radio" value="solr" <?php s4w_checkConnectOption('solr'); ?> onclick="switch1();" />Solr Server</h4>
+			<h4><input id="solrconnect" name="settings[s4w_connect_type]" type="radio" value="solr" <?php s4w_checkConnectOption($s4w_settings['s4w_connect_type'], 'solr'); ?> onclick="switch1();" />Solr Server</h4>
 			<ol>
 				<li>Download, install and configure your own <a href="">Apache Solr 1.4</a> instance</li>
 			</ol>
@@ -167,28 +160,28 @@ if ($_POST['s4w_ping']) {
 <table class="form-table">
     <tr valign="top">
         <th scope="row" style="width:200px;"><?php _e('Index Pages', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_index_pages" value="1" <?php echo s4w_checkCheckbox('s4w_index_pages'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_index_pages]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_index_pages']); ?> /></td>
         <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Index Posts', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_index_posts" value="1" <?php echo s4w_checkCheckbox('s4w_index_posts'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_index_posts]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_index_posts']); ?> /></td>
     </tr>
 
     <tr valign="top">
         <th scope="row" style="width:200px;"><?php _e('Remove Page on Delete', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_delete_page" value="1" <?php echo s4w_checkCheckbox('s4w_delete_page'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_delete_page]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_delete_page']); ?> /></td>
         <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Remove Post on Delete', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_delete_post" value="1" <?php echo s4w_checkCheckbox('s4w_delete_post'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_delete_post]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_delete_post']); ?> /></td>
     </tr>
     
     <tr valign="top">
         <th scope="row" style="width:200px;"><?php _e('Remove Page on Status Change', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_private_page" value="1" <?php echo s4w_checkCheckbox('s4w_private_page'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_private_page]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_private_page']); ?> /></td>
         <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Remove Post on Status Change', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_private_post" value="1" <?php echo s4w_checkCheckbox('s4w_private_post'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_private_post]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_private_post']); ?> /></td>
     </tr>
 
     <tr valign="top">
         <th scope="row" style="width:200px;"><?php _e('Index Comments', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_index_comments" value="1" <?php echo s4w_checkCheckbox('s4w_index_comments'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_index_comments]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_index_comments']); ?> /></td>
     </tr>
         
     <?php
@@ -198,18 +191,18 @@ if ($_POST['s4w_ping']) {
     
     <tr valign="top">
         <th scope="row" style="width:200px;"><?php _e('Index all Sites', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_index_all_sites" value="1" <?php echo s4w_checkCheckbox('s4w_index_all_sites'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_index_all_sites]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_index_all_sites']); ?> /></td>
     </tr>
     <?php
     }
     ?>
     <tr valign="top">
         <th scope="row"><?php _e('Index custom fields (comma separated names list)') ?></th>
-        <td><input type="text" name="s4w_index_custom_fields" value="<?php print( s4w_filter_list2str(s4w_get_option('s4w_index_custom_fields'), 'solr4wp')); ?>" /></td>
+        <td><input type="text" name="settings[s4w_index_custom_fields]" value="<?php print( s4w_filter_list2str($s4w_settings['s4w_index_custom_fields'], 'solr4wp')); ?>" /></td>
     </tr>
     <tr valign="top">
         <th scope="row"><?php _e('Excludes Posts or Pages (comma separated ids list)') ?></th>
-        <td><input type="text" name="s4w_exclude_pages" value="<?php print( s4w_filter_list2str(s4w_get_option('s4w_exclude_pages'), 'solr4wp')); ?>" /></td>
+        <td><input type="text" name="settings[s4w_exclude_pages]" value="<?php print( s4w_filter_list2str($s4w_settings['s4w_exclude_pages'], 'solr4wp')); ?>" /></td>
     </tr>
 </table>
 <hr />
@@ -217,55 +210,55 @@ if ($_POST['s4w_ping']) {
 <table class="form-table">
     <tr valign="top">
         <th scope="row" style="width:200px;"><?php _e('Output Result Info', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_output_info" value="1" <?php echo s4w_checkCheckbox('s4w_output_info'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_output_info]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_output_info']); ?> /></td>
         <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Output Result Pager', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_output_pager" value="1" <?php echo s4w_checkCheckbox('s4w_output_pager'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_output_pager]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_output_pager']); ?> /></td>
     </tr>
  
     <tr valign="top">
         <th scope="row" style="width:200px;"><?php _e('Output Facets', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_output_facets" value="1" <?php echo s4w_checkCheckbox('s4w_output_facets'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_output_facets]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_output_facets']); ?> /></td>
         <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Category Facet as Taxonomy', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_cat_as_taxo" value="1" <?php echo s4w_checkCheckbox('s4w_cat_as_taxo'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_cat_as_taxo]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_cat_as_taxo']); ?> /></td>
     </tr>
 
     <tr valign="top">
         <th scope="row" style="width:200px;"><?php _e('Categories as Facet', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_facet_on_categories" value="1" <?php echo s4w_checkCheckbox('s4w_facet_on_categories'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_facet_on_categories]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_facet_on_categories']); ?> /></td>
         <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Tags as Facet', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_facet_on_tags" value="1" <?php echo s4w_checkCheckbox('s4w_facet_on_tags'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_facet_on_tags]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_facet_on_tags']); ?> /></td>
     </tr>
     
     <tr valign="top">
         <th scope="row" style="width:200px;"><?php _e('Author as Facet', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_facet_on_author" value="1" <?php echo s4w_checkCheckbox('s4w_facet_on_author'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_facet_on_author]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_facet_on_author']); ?> /></td>
         <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Type as Facet', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_facet_on_type" value="1" <?php echo s4w_checkCheckbox('s4w_facet_on_type'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_facet_on_type]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_facet_on_type']); ?> /></td>
     </tr>
 
      <tr valign="top">
          <th scope="row" style="width:200px;"><?php _e('Taxonomy as Facet', 'solr4wp') ?></th>
-         <td style="width:10px;float:left;"><input type="checkbox" name="s4w_facet_on_taxonomy" value="1" <?php echo s4w_checkCheckbox('s4w_facet_on_taxonomy'); ?> /></td>
+         <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_facet_on_taxonomy]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_facet_on_taxonomy']); ?> /></td>
       </tr>
       
     <tr valign="top">
         <th scope="row"><?php _e('Custom fields as Facet (comma separated ordered names list)') ?></th>
-        <td><input type="text" name="s4w_facet_on_custom_fields" value="<?php print( s4w_filter_list2str(s4w_get_option('s4w_facet_on_custom_fields'), 'solr4wp')); ?>" /></td>
+        <td><input type="text" name="settings[s4w_facet_on_custom_fields]" value="<?php print( s4w_filter_list2str($s4w_settings['s4w_facet_on_custom_fields'], 'solr4wp')); ?>" /></td>
     </tr>
 
     <tr valign="top">
         <th scope="row" style="width:200px;"><?php _e('Enable Spellchecking', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="s4w_enable_dym" value="1" <?php echo s4w_checkCheckbox('s4w_enable_dym'); ?> /></td>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_enable_dym]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_enable_dym']); ?> /></td>
     </tr>
                    
     <tr valign="top">
         <th scope="row"><?php _e('Number of Results Per Page', 'solr4wp') ?></th>
-        <td><input type="text" name="s4w_num_results" value="<?php _e(s4w_get_option('s4w_num_results'), 'solr4wp'); ?>" /></td>
+        <td><input type="text" name="settings[s4w_num_results]" value="<?php _e($s4w_settings['s4w_num_results'], 'solr4wp'); ?>" /></td>
     </tr>   
     
     <tr valign="top">
         <th scope="row"><?php _e('Max Number of Tags to Display', 'solr4wp') ?></th>
-        <td><input type="text" name="s4w_max_display_tags" value="<?php _e(s4w_get_option('s4w_max_display_tags'), 'solr4wp'); ?>" /></td>
+        <td><input type="text" name="settings[s4w_max_display_tags]" value="<?php _e($s4w_settings['s4w_max_display_tags'], 'solr4wp'); ?>" /></td>
     </tr>
 </table>
 <hr />
