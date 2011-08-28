@@ -37,7 +37,7 @@ if (s4w_get_option('s4w_solr_initialized') != '1') {
     s4w_update_option('s4w_output_pager', '1');
     s4w_update_option('s4w_output_facets', '1');
     //s4w_update_option('s4w_exclude_pages', array());
-    s4w_update_option('s4w_exclude_pages', 'NA');  // why not just "" ?
+    s4w_update_option('s4w_exclude_pages', '');  
     s4w_update_option('s4w_num_results', '5');
     s4w_update_option('s4w_cat_as_taxo', '1');
     s4w_update_option('s4w_solr_initialized', '1');
@@ -51,8 +51,8 @@ if (s4w_get_option('s4w_solr_initialized') != '1') {
     s4w_update_option('s4w_connect_type', 'solr');
     //s4w_update_option('s4w_index_custom_fields', array());
     //s4w_update_option('s4w_facet_on_custom_fields', array());
-    s4w_update_option('s4w_index_custom_fields', 'NA');  // why not just "" ?
-    s4w_update_option('s4w_facet_on_custom_fields', 'NA');   // why not just "" ?
+    s4w_update_option('s4w_index_custom_fields', '');  
+    s4w_update_option('s4w_facet_on_custom_fields', '');  
 }
 
 wp_reset_vars(array('action'));
@@ -191,8 +191,8 @@ if ($_POST['s4w_ping']) {
     </tr>
         
     <?php
-    //if (is_wpmu() && is_main_blog()) {
-    if (is_wpmu() && is_main_blog() && false) {
+    //is this a multisite installation
+    if (is_multisite() && is_main_site()) {
     ?>
     
     <tr valign="top">
