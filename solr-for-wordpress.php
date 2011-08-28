@@ -41,10 +41,12 @@ if (version_compare($wp_version, '3.0', '<')) {
 
 require_once(dirname(__FILE__) . '/Apache/Solr/Service.php');
 
-function s4w_get_option($option) {
+function s4w_get_option() {
     $indexall = FALSE;
+    $option = 'plugin_s4w_settings';
     if (is_multisite()) {
-        $indexall = get_site_option('s4w_index_all_sites');
+        $plugin_s4w_settings = get_site_option($option);
+        $indexall = $plugin_s4w_settings['s4w_index_all_sites'];
     }
     
     if ($indexall) {
@@ -54,10 +56,12 @@ function s4w_get_option($option) {
     }
 }
 
-function s4w_update_option($option, $optval) {
+function s4w_update_option($optval) {
     $indexall = FALSE;
+    $option = 'plugin_s4w_settings';
     if (is_multisite()) {
-        $indexall = get_site_option('s4w_index_all_sites');
+       $plugin_s4w_settings = get_site_option($option);
+       $indexall = $plugin_s4w_settings['s4w_index_all_sites'];
     }
     
     if ($indexall) {
@@ -69,9 +73,10 @@ function s4w_update_option($option, $optval) {
 
 function s4w_get_solr($ping = FALSE) {
     # get the connection options
-    $host = s4w_get_option('s4w_solr_host');
-    $port = s4w_get_option('s4w_solr_port');
-    $path = s4w_get_option('s4w_solr_path');
+    $plugin_s4w_settings = s4w_get_option();
+    $host = $plugin_s4w_settings['s4w_solr_host'];
+    $port = $plugin_s4w_settings['s4w_solr_port'];
+    $path = $plugin_s4w_settings['s4w_solr_path'];
     
     # double check everything has been set
     if ( ! ($host and $port and $path) ) {
@@ -94,10 +99,11 @@ function s4w_get_solr($ping = FALSE) {
 function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
     global $current_site, $current_blog;
     $doc = NULL;
-    $exclude_ids = s4w_get_option('s4w_exclude_pages');
-    $categoy_as_taxonomy = s4w_get_option('s4w_cat_as_taxo');
-    $index_comments = s4w_get_option('s4w_index_comments');
-    $index_custom_fields = s4w_get_option('s4w_index_custom_fields');
+    $plugin_s4w_settings = s4w_get_option();
+    $exclude_ids = $plugin_s4w_settings['s4w_exclude_pages'];
+    $categoy_as_taxonomy = $plugin_s4w_settings['s4w_cat_as_taxo'];
+    $index_comments = $plugin_s4w_settings['s4w_index_comments'];
+    $index_custom_fields = $plugin_s4w_settings['s4w_index_custom_fields'];
     
     if ($post_info) {
         
@@ -306,8 +312,9 @@ function s4w_load_blog_all($blogid) {
 function s4w_handle_modified( $post_id ) {
     global $current_blog;
     $post_info = get_post( $post_id );
-    $index_pages = s4w_get_option('s4w_index_pages');
-    $index_posts = s4w_get_option('s4w_index_posts');
+    $plugin_s4w_settings = s4w_get_option();
+    $index_pages = $plugin_s4w_settings['s4w_index_pages'];
+    $index_posts = $plugin_s4w_settings['s4w_index_posts'];
     
     if (($index_pages && $post_info->post_type == 'page') || ($index_posts && $post_info->post_type == 'post')) {
         
@@ -328,8 +335,9 @@ function s4w_handle_modified( $post_id ) {
 function s4w_handle_status_change( $post_id ) {
     global $current_blog;
     $post_info = get_post( $post_id );
-    $private_page = s4w_get_option('s4w_private_page');
-    $private_post = s4w_get_option('s4w_private_post');
+    $plugin_s4w_settings = s4w_get_option();
+    $private_page = $plugin_s4w_settings['s4w_private_page'];
+    $private_post = $plugin_s4w_settings['s4w_private_post'];
     
     if ( ($private_page && $post_info->post_type == 'page') || ($private_post && $post_info->post_type == 'post') ) {
         if ( ($_POST['prev_status'] == 'publish' || $_POST['original_post_status'] == 'publish') && 
@@ -346,8 +354,9 @@ function s4w_handle_status_change( $post_id ) {
 function s4w_handle_delete( $post_id ) {
     global $current_blog;
     $post_info = get_post( $post_id );
-    $delete_page = s4w_get_option('s4w_delete_page');
-    $delete_post = s4w_get_option('s4w_delete_post');
+    $plugin_s4w_settings = s4w_get_option();
+    $delete_page = $plugin_s4w_settings['s4w_delete_page'];
+    $delete_post = $plugin_s4w_settings['s4w_delete_post'];
     
     if ( ($delete_page && $post_info->post_type == 'page') || ($delete_post && $post_info->post_type == 'post') ) {
         if (is_multisite()) {
@@ -399,8 +408,9 @@ function s4w_load_all_posts($prev) {
     $found = FALSE;
     $end = FALSE;
     $percent = 0;
-    
-    if (is_multisite() && get_site_option('s4w_index_all_sites')) {
+    //multisite logic is decided s4w_get_option
+    $plugin_s4w_settings = s4w_get_option();
+    if ($plugin_s4w_settings['s4w_index_all_sites']) {
         $bloglist = $wpdb->get_col("SELECT * FROM {$wpdb->base_prefix}blogs", 0);
         foreach ($bloglist as $bloginfo) {
             $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo->blog_id}_posts WHERE post_status = 'publish' AND post_type = 'post' ORDER BY ID;");
@@ -483,9 +493,8 @@ function s4w_load_all_pages($prev) {
     $found = FALSE;
     $end = FALSE;
     $percent = 0;
-    
-    //if (is_multisite() && get_site_option('s4w_index_all_sites')) {
-    if (is_multisite() && FALSE) {
+    $plugin_s4w_settings = s4w_get_option();
+    if ($plugin_s4w_settings['s4w_index_all_sites']) {
         $bloglist = $wpdb->get_col("SELECT * FROM {$wpdb->base_prefix}blogs", 0);
         foreach ($bloglist as $bloginfo) {
             $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo->blog_id}_posts WHERE post_status = 'publish' AND post_type = 'page' ORDER BY ID;");
@@ -591,12 +600,13 @@ function s4w_search_results() {
     $order = $_GET['order'];
     $isdym = $_GET['isdym'];
     
-    $output_info = s4w_get_option('s4w_output_info');
-    $output_pager = s4w_get_option('s4w_output_pager');
-    $output_facets = s4w_get_option('s4w_output_facets');
-    $results_per_page = s4w_get_option('s4w_num_results');
-    $categoy_as_taxonomy = s4w_get_option('s4w_cat_as_taxo');
-    $dym_enabled = s4w_get_option('s4w_enable_dym');
+    $plugin_s4w_settings = s4w_get_option();
+    $output_info = $plugin_s4w_settings['s4w_output_info'];
+    $output_pager = $plugin_s4w_settings['s4w_output_pager'];
+    $output_facets = $plugin_s4w_settings['s4w_output_facets'];
+    $results_per_page = $plugin_s4w_settings['s4w_num_results'];
+    $categoy_as_taxonomy = $plugin_s4w_settings['s4w_cat_as_taxo'];
+    $dym_enabled = $plugin_s4w_settings['s4w_enable_dym'];
     $out = array();
     
     if ( ! $qry ) {
@@ -866,30 +876,31 @@ function s4w_query( $qry, $offset, $count, $fq, $sortby) {
     $solr = s4w_get_solr();
     $response = NULL;
     $facet_fields = array();
-    $number_of_tags = s4w_get_option('s4w_max_display_tags');
+    $plugin_s4w_settings = s4w_get_option();
+    $number_of_tags = $plugin_s4w_settings['s4w_max_display_tags'];
     
-    if (s4w_get_option('s4w_facet_on_categories')) {
+    if ($plugin_s4w_settings['s4w_facet_on_categories']) {
       $facet_fields[] = 'categories';
     }
     
-    $facet_on_tags = s4w_get_option('s4w_facet_on_tags');
+    $facet_on_tags = $plugin_s4w_settings['s4w_facet_on_tags'];
     if ($facet_on_tags) {
       $facet_fields[] = 'tags';
     }
     
-    if (s4w_get_option('s4w_facet_on_author')) {
+    if ($plugin_s4w_settings['s4w_facet_on_author']) {
       $facet_fields[] = 'author';
     }
     
-    if (s4w_get_option('s4w_facet_on_type')) {
+    if ($plugin_s4w_settings['s4w_facet_on_type']) {
       $facet_fields[] = 'type';
     }
     
-    $facet_on_custom_fields = s4w_get_option('s4w_facet_on_custom_fields');
-    if (count($facet_on_custom_fields)>0) {
-        foreach ( $facet_on_custom_fields as $field_name ) {
-        	$facet_fields[] = $field_name . '_str';
-        }
+    $facet_on_custom_fields = $plugin_s4w_settings['s4w_facet_on_custom_fields'];
+    if (is_array($facet_on_custom_fields)) {
+      foreach ( $facet_on_custom_fields as $field_name ) {
+      	$facet_fields[] = $field_name . '_str';
+      }
     }   	
     
     if ( $solr ) {
@@ -1014,7 +1025,8 @@ function s4w_add_pages() {
     $addpage = FALSE;
     
     if (is_multisite() && is_site_admin()) {
-        $indexall = get_site_option('s4w_index_all_sites');
+        $plugin_s4w_settings = s4w_get_option();
+        $indexall = $plugin_s4w_settings['s4w_index_all_sites'];
         if (($indexall && is_main_blog()) || !$indexall) {
             $addpage = TRUE;
         }

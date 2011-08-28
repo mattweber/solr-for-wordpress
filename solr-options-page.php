@@ -58,7 +58,7 @@ if ( $s4w_settings['s4w_solr_initialized'] != 1) {
     $options['s4w_index_custom_fields'] = '';  
     $options['s4w_facet_on_custom_fields'] = '';  
     //save our options array
-    s4w_update_option('plugin_s4w_settings', $options);
+    s4w_update_option($options);
 }
 wp_reset_vars(array('action'));
 
@@ -68,10 +68,8 @@ wp_reset_vars(array('action'));
 # As it stands we have 27 options instead of making 27 insert calls (which is what update_options does)
 # Lets create an array of all our options and save it once.
 if ($_POST['action'] == 'update') { 
-  krumo($_POST);
   //lets loop through our setting fields $_POST['settings']
   foreach ( $_POST['settings'] as $option => $value ) {
-    krumo($option);
     $option = trim($option);
     if ( !is_array($value) ) $value = trim($value);
     
@@ -80,7 +78,7 @@ if ($_POST['action'] == 'update') {
   
   }    
   //lets save our options array
-  s4w_update_option('plugin_s4w_settings', $_POST['settings']);
+  s4w_update_option($_POST['settings']);
 
 
   ?>
