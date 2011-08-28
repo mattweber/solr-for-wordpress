@@ -30,7 +30,7 @@ Author URI: http://www.mattweber.org
     THE SOFTWARE.
 */
 
-global $wp_version, $version
+global $wp_version, $version;
 
 $version = '0.4.0';
 
@@ -164,21 +164,34 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
             }
         }
         
+        //get all the taxonomy names used by wp
+        $taxonomies = (array)get_taxonomies(array('_builtin'=>FALSE),'names');
+        foreach($taxonomies as $parent) {
+          $terms = get_the_terms( $post_info->ID, $parent );
+          if ((array) $terms === $terms) {
+            //we are creating *_taxonomy as dynamic fields using our schema
+            //so lets set up all our taxonomies in that format
+            $parent = $parent."_taxonomy";
+            foreach ($terms as $term) {
+              $doc->addField($parent, $term->name);
+            }
+          }
+        }
+        
         $tags = get_the_tags($post_info->ID);
         if ( ! $tags == NULL ) { 
             foreach( $tags as $tag ) {
                 $doc->addField('tags', $tag->name);
             }
         }
-
-        if (count($index_custom_fields)>0) {
-        	$custom_fields = get_post_custom($post_info->ID);
+        
+        if (count($index_custom_fields)>0 && count($custom_fields = get_post_custom($post_info->ID))) {
         	foreach ( $index_custom_fields as $field_name ) {
-        		$field = $custom_fields[$field_name];
-  				foreach ( $field as $key => $value ) {
-  					$doc->addField($field_name . '_str', $value);
-  					$doc->addField($field_name . '_srch', $value);
-  				}
+          	$field = $custom_fields[$field_name];
+    				foreach ( $field as $key => $value ) {
+    					$doc->addField($field_name . '_str', $value);
+    					$doc->addField($field_name . '_srch', $value);
+    				}
         	}
         }
     } else {
@@ -961,7 +974,7 @@ function s4w_options_init() {
 
 function s4w_filter_str2list_numeric($input) {
     $final = array();
-    if ($input != "NA") {
+    if ($input != "") {
         foreach( split(',', $input) as $val ) {
             $val = trim($val);
             if ( is_numeric($val) ) {
@@ -975,7 +988,7 @@ function s4w_filter_str2list_numeric($input) {
 
 function s4w_filter_str2list($input) {
     $final = array();
-    if ($input != "NA" && $input != "") {
+    if ($input != "") {
         foreach( split(',', $input) as $val ) {
             $final[] = trim($val);
         }
@@ -986,12 +999,12 @@ function s4w_filter_str2list($input) {
 
 function s4w_filter_list2str($input) {
 	if (!is_array($input)) {
-		return "NA";    // why not just "" ?
+		return "";
 	}
 	
     $outval = implode(',', $input);
     if (!$outval) {
-        $outval = "NA"; // why not just "" ?
+        $outval = ""; 
     }
     
     return $outval;

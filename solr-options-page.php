@@ -37,12 +37,13 @@ if (s4w_get_option('s4w_solr_initialized') != '1') {
     s4w_update_option('s4w_output_pager', '1');
     s4w_update_option('s4w_output_facets', '1');
     //s4w_update_option('s4w_exclude_pages', array());
-    s4w_update_option('s4w_exclude_pages', 'NA');  // why not just "" ?
+    s4w_update_option('s4w_exclude_pages', '');  
     s4w_update_option('s4w_num_results', '5');
     s4w_update_option('s4w_cat_as_taxo', '1');
     s4w_update_option('s4w_solr_initialized', '1');
     s4w_update_option('s4w_max_display_tags', '10');
     s4w_update_option('s4w_facet_on_categories', '1');
+    s4w_update_option('s4w_facet_on_taxonomy', '1');
     s4w_update_option('s4w_facet_on_tags', '1');
     s4w_update_option('s4w_facet_on_author', '1');
     s4w_update_option('s4w_facet_on_type', '1');
@@ -51,8 +52,8 @@ if (s4w_get_option('s4w_solr_initialized') != '1') {
     s4w_update_option('s4w_connect_type', 'solr');
     //s4w_update_option('s4w_index_custom_fields', array());
     //s4w_update_option('s4w_facet_on_custom_fields', array());
-    s4w_update_option('s4w_index_custom_fields', 'NA');  // why not just "" ?
-    s4w_update_option('s4w_facet_on_custom_fields', 'NA');   // why not just "" ?
+    s4w_update_option('s4w_index_custom_fields', '');  
+    s4w_update_option('s4w_facet_on_custom_fields', '');  
 }
 
 wp_reset_vars(array('action'));
@@ -67,7 +68,7 @@ if ($_POST['action'] == 'update') {
                      's4w_exclude_pages', 's4w_num_results', 's4w_cat_as_taxo', 's4w_max_display_tags',
                      's4w_facet_on_categories', 's4w_facet_on_tags', 's4w_facet_on_author', 's4w_facet_on_type',
                      's4w_enable_dym', 's4w_index_comments', 's4w_connect_type', 's4w_index_all_sites', 
-                     's4w_index_custom_fields', 's4w_facet_on_custom_fields');
+                     's4w_index_custom_fields', 's4w_facet_on_custom_fields', 's4w_facet_on_taxonomy');
         
     foreach ( $options as $option ) {
         $option = trim($option);
@@ -191,8 +192,8 @@ if ($_POST['s4w_ping']) {
     </tr>
         
     <?php
-    //if (is_wpmu() && is_main_blog()) {
-    if (is_wpmu() && is_main_blog() && false) {
+    //is this a multisite installation
+    if (is_multisite() && is_main_site()) {
     ?>
     
     <tr valign="top">
@@ -242,6 +243,11 @@ if ($_POST['s4w_ping']) {
         <td style="width:10px;float:left;"><input type="checkbox" name="s4w_facet_on_type" value="1" <?php echo s4w_checkCheckbox('s4w_facet_on_type'); ?> /></td>
     </tr>
 
+     <tr valign="top">
+         <th scope="row" style="width:200px;"><?php _e('Taxonomy as Facet', 'solr4wp') ?></th>
+         <td style="width:10px;float:left;"><input type="checkbox" name="s4w_facet_on_taxonomy" value="1" <?php echo s4w_checkCheckbox('s4w_facet_on_taxonomy'); ?> /></td>
+      </tr>
+      
     <tr valign="top">
         <th scope="row"><?php _e('Custom fields as Facet (comma separated ordered names list)') ?></th>
         <td><input type="text" name="s4w_facet_on_custom_fields" value="<?php print( s4w_filter_list2str(s4w_get_option('s4w_facet_on_custom_fields'), 'solr4wp')); ?>" /></td>
