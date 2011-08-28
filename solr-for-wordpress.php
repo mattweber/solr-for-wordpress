@@ -164,6 +164,20 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
             }
         }
         
+        //get all the taxonomy names used by wp
+        $taxonomies = (array)get_taxonomies(array('_builtin'=>FALSE),'names');
+        foreach($taxonomies as $parent) {
+          $terms = get_the_terms( $post_info->ID, $parent );
+          if ((array) $terms === $terms) {
+            //we are creating *_taxonomy as dynamic fields using our schema
+            //so lets set up all our taxonomies in that format
+            $parent = $parent."_taxonomy";
+            foreach ($terms as $term) {
+              $doc->addField($parent, $term->name);
+            }
+          }
+        }
+        
         $tags = get_the_tags($post_info->ID);
         if ( ! $tags == NULL ) { 
             foreach( $tags as $tag ) {
