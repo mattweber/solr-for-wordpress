@@ -25,6 +25,8 @@
 $s4w_settings = s4w_get_option('plugin_s4w_settings');
 #set defaults if not initialized
 if ($s4w_settings['s4w_solr_initialized'] != 1) {
+  
+  
   $options['s4w_index_all_sites'] = 0;
   $options['s4w_solr_host'] = 'localhost';
   $options['s4w_solr_port'] = 8983;
@@ -56,11 +58,29 @@ if ($s4w_settings['s4w_solr_initialized'] != 1) {
   //$options['s4w_facet_on_custom_fields', array());
   $options['s4w_index_custom_fields'] = '';  
   $options['s4w_facet_on_custom_fields'] = '';  
-  //save our options array
+  
+  //update existing settings from multiple option record to a single array
+  //if old options exist, update to new system
+  $delte_option_function = 'delete_option';
+  if (is_multisite()) {
+    $indexall = get_site_option('s4w_index_all_sites');
+    $delte_option_function = 'delete_site_option';
+  }
+
+	foreach( $options as $key => $value ) {
+    if( $existing = get_option($key)) {
+  	  krumo( $existing);
+  		$options[$key] = $existing;
+  		delete_option($key);
+  		$indexall = FALSE;
+      $option_function($key);
+    }
+	}
+  
   $s4w_settings = $options;
+  //save our options array
   s4w_update_option($options);
 }
-
 
 wp_reset_vars(array('action'));
 
