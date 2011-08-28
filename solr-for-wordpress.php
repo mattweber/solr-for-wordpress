@@ -110,7 +110,7 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         # check if we need to exclude this document
         if (is_multisite() && in_array($current_blog->domain . $current_blog->path . $post_info->ID, $exclude_ids)) {
             return NULL;
-        } else if ( !is_multisite() && in_array($post_info->ID, $exclude_ids) ) {
+        } else if ( !is_multisite() && in_array($post_info->ID, (array)$exclude_ids) ) {
             return NULL;
         }
         
@@ -192,8 +192,8 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         }
         
         if (count($index_custom_fields)>0 && count($custom_fields = get_post_custom($post_info->ID))) {
-        	foreach ( $index_custom_fields as $field_name ) {
-          	$field = $custom_fields[$field_name];
+        	foreach ((array)$index_custom_fields as $field_name ) {
+          	$field = (array)$custom_fields[$field_name];
     				foreach ( $field as $key => $value ) {
     					$doc->addField($field_name . '_str', $value);
     					$doc->addField($field_name . '_srch', $value);

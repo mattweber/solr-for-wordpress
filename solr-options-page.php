@@ -23,43 +23,45 @@
 
 //get the plugin settings
 $s4w_settings = s4w_get_option('plugin_s4w_settings');
-
 #set defaults if not initialized
-if ( $s4w_settings['s4w_solr_initialized'] != 1) {
-    $options['s4w_index_all_sites'] = 0;
-    $options['s4w_solr_host'] = 'localhost';
-    $options['s4w_solr_port'] = 8983;
-    $options['s4w_solr_path'] = '/solr';
-    $options['s4w_index_pages'] = 1;
-    $options['s4w_index_posts'] = 1;
-    $options['s4w_delete_page'] = 1;
-    $options['s4w_delete_post'] = 1;
-    $options['s4w_private_page'] = 1;
-    $options['s4w_private_post'] = 1;
-    $options['s4w_output_info'] = 1;
-    $options['s4w_output_pager'] = 1;
-    $options['s4w_output_facets'] = 1;
-    //$options['s4w_exclude_pages', array());
-    $options['s4w_exclude_pages'] = '';  
-    $options['s4w_num_results'] = 5;
-    $options['s4w_cat_as_taxo'] = 1;
-    $options['s4w_solr_initialized'] = 1;
-    $options['s4w_max_display_tags'] = 10;
-    $options['s4w_facet_on_categories'] = 1;
-    $options['s4w_facet_on_taxonomy'] = 1;
-    $options['s4w_facet_on_tags'] = 1;
-    $options['s4w_facet_on_author'] = 1;
-    $options['s4w_facet_on_type'] = 1;
-    $options['s4w_enable_dym'] = 1;
-    $options['s4w_index_comments'] = 1;
-    $options['s4w_connect_type'] = 'solr';
-    //$options['s4w_index_custom_fields', array());
-    //$options['s4w_facet_on_custom_fields', array());
-    $options['s4w_index_custom_fields'] = '';  
-    $options['s4w_facet_on_custom_fields'] = '';  
-    //save our options array
-    s4w_update_option($options);
+if ($s4w_settings['s4w_solr_initialized'] != 1) {
+  $options['s4w_index_all_sites'] = 0;
+  $options['s4w_solr_host'] = 'localhost';
+  $options['s4w_solr_port'] = 8983;
+  $options['s4w_solr_path'] = '/solr';
+  $options['s4w_index_pages'] = 1;
+  $options['s4w_index_posts'] = 1;
+  $options['s4w_delete_page'] = 1;
+  $options['s4w_delete_post'] = 1;
+  $options['s4w_private_page'] = 1;
+  $options['s4w_private_post'] = 1;
+  $options['s4w_output_info'] = 1;
+  $options['s4w_output_pager'] = 1;
+  $options['s4w_output_facets'] = 1;
+  //$options['s4w_exclude_pages', array());
+  $options['s4w_exclude_pages'] = '';  
+  $options['s4w_num_results'] = 5;
+  $options['s4w_cat_as_taxo'] = 1;
+  $options['s4w_solr_initialized'] = 1;
+  $options['s4w_max_display_tags'] = 10;
+  $options['s4w_facet_on_categories'] = 1;
+  $options['s4w_facet_on_taxonomy'] = 1;
+  $options['s4w_facet_on_tags'] = 1;
+  $options['s4w_facet_on_author'] = 1;
+  $options['s4w_facet_on_type'] = 1;
+  $options['s4w_enable_dym'] = 1;
+  $options['s4w_index_comments'] = 1;
+  $options['s4w_connect_type'] = 'solr';
+  //$options['s4w_index_custom_fields', array());
+  //$options['s4w_facet_on_custom_fields', array());
+  $options['s4w_index_custom_fields'] = '';  
+  $options['s4w_facet_on_custom_fields'] = '';  
+  //save our options array
+  $s4w_settings = $options;
+  s4w_update_option($options);
 }
+
+
 wp_reset_vars(array('action'));
 
 # save form settings if we get the update action
@@ -67,18 +69,17 @@ wp_reset_vars(array('action'));
 # s4w_update_option instead of update option.
 # As it stands we have 27 options instead of making 27 insert calls (which is what update_options does)
 # Lets create an array of all our options and save it once.
-if ($_POST['action'] == 'update') { 
+if ($_POST['action'] == 'update') {   
   //lets loop through our setting fields $_POST['settings']
-  foreach ( $_POST['settings'] as $option => $value ) {
-    $option = trim($option);
-    if ( !is_array($value) ) $value = trim($value);
-    
+  foreach ($s4w_settings as $option => $old_value ) {
+    $value = $_POST['settings'][$option];
+    if ($option == 's4w_index_all_sites' || $option == 's4w_solr_initialized') $value = trim($old_value);  
+    if ( !is_array($value) ) $value = trim($value); 
     $value = stripslashes_deep($value);
-    $option_settings[$option] = $value;
-  
+    $s4w_settings[$option] = $value;
   }    
   //lets save our options array
-  s4w_update_option($_POST['settings']);
+  s4w_update_option($s4w_settings);
 
 
   ?>
