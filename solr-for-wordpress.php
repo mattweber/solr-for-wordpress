@@ -954,33 +954,42 @@ function s4w_options_init() {
             return;
         }
     }
-    
-    register_setting( 's4w-options-group', 's4w_solr_host', 'wp_filter_nohtml_kses' );
-    register_setting( 's4w-options-group', 's4w_solr_port', 'absint' );
-    register_setting( 's4w-options-group', 's4w_solr_path', 'wp_filter_nohtml_kses' );
-    register_setting( 's4w-options-group', 's4w_index_pages', 'absint' );
-    register_setting( 's4w-options-group', 's4w_index_posts', 'absint' );
-    register_setting( 's4w-options-group', 's4w_index_comments', 'absint' ); 
-    register_setting( 's4w-options-group', 's4w_delete_page', 'absint' ); 
-    register_setting( 's4w-options-group', 's4w_delete_post', 'absint' ); 
-    register_setting( 's4w-options-group', 's4w_private_page', 'absint' ); 
-    register_setting( 's4w-options-group', 's4w_private_post', 'absint' );
-    register_setting( 's4w-options-group', 's4w_output_info', 'absint' ); 
-    register_setting( 's4w-options-group', 's4w_output_pager', 'absint' ); 
-    register_setting( 's4w-options-group', 's4w_output_facets', 'absint' );
-    register_setting( 's4w-options-group', 's4w_exclude_pages', 's4w_filter_str2list' );
-    register_setting( 's4w-options-group', 's4w_num_results', 'absint' );
-    register_setting( 's4w-options-group', 's4w_cat_as_taxo', 'absint' );
-    register_setting( 's4w-options-group', 's4w_max_display_tags', 'absint' );
-    register_setting( 's4w-options-group', 's4w_facet_on_categories', 'absint' );
-    register_setting( 's4w-options-group', 's4w_facet_on_tags', 'absint' );
-    register_setting( 's4w-options-group', 's4w_facet_on_author', 'absint' );
-    register_setting( 's4w-options-group', 's4w_facet_on_type', 'absint' );
-    register_setting( 's4w-options-group', 's4w_index_all_sites', 'absint' );
-    register_setting( 's4w-options-group', 's4w_enable_dym', 'absint' );
-    register_setting( 's4w-options-group', 's4w_connect_type', 'wp_filter_nohtml_kses' );
-    register_setting( 's4w-options-group', 's4w_index_custom_fields', 's4w_filter_str2list' );
-    register_setting( 's4w-options-group', 's4w_facet_on_custom_fields', 's4w_filter_str2list' );    
+    register_setting('s4w-options-group', 'plugin_s4w_settings', 's4w_sanitise_options' );   
+}
+
+/**
+ * Sanitises the options values
+ * @param $options array of s4w settings options
+ * @return $options sanitised values
+ */
+function s4w_sanitise_options($options) {
+  $options['s4w_solr_host'] = wp_filter_nohtml_kses($options['s4w_solr_host']);
+  $options['s4w_solr_port'] = absint($options['s4w_solr_port']);
+  $options['s4w_solr_path'] = wp_filter_nohtml_kses($options['s4w_solr_path']);
+  $options['s4w_index_pages'] = absint($options['s4w_index_pages']);
+  $options['s4w_index_posts'] = absint($options['s4w_index_posts']);
+  $options['s4w_index_comments'] = absint($options['s4w_index_comments']); 
+  $options['s4w_delete_page'] = absint($options['s4w_delete_page']); 
+  $options['s4w_delete_post'] = absint($options['s4w_delete_post']); 
+  $options['s4w_private_page'] = absint($options['s4w_private_page']); 
+  $options['s4w_private_post'] = absint($options['s4w_private_post']);
+  $options['s4w_output_info'] = absint($options['s4w_output_info']); 
+  $options['s4w_output_pager'] = absint($options['s4w_output_pager']); 
+  $options['s4w_output_facets'] = absint($options['s4w_output_facets']);
+  $options['s4w_exclude_pages'] = s4w_filter_str2list($options['s4w_exclude_pages']);
+  $options['s4w_num_results'] = absint($options['s4w_num_results']);
+  $options['s4w_cat_as_taxo'] = absint($options['s4w_cat_as_taxo']);
+  $options['s4w_max_display_tags'] = absint($options['s4w_max_display_tags']);
+  $options['s4w_facet_on_categories'] = absint($options['s4w_facet_on_categories']);
+  $options['s4w_facet_on_tags'] = absint($options['s4w_facet_on_tags'] );
+  $options['s4w_facet_on_author'] = absint($options['s4w_facet_on_author']);
+  $options['s4w_facet_on_type'] = absint($options['s4w_facet_on_type']);
+  $options['s4w_index_all_sites'] = absint($options['s4w_index_all_sites']);
+  $options['s4w_enable_dym'] = absint($options['s4w_enable_dym'] );
+  $options['s4w_connect_type'] = wp_filter_nohtml_kses($options['s4w_connect_type']);
+  $options['s4w_index_custom_fields'] = s4w_filter_str2list($options['s4w_index_custom_fields']);
+  $options['s4w_facet_on_custom_fields'] = s4w_filter_str2list($options['s4w_facet_on_custom_fields']);    
+  return $options;
 }
 
 function s4w_filter_str2list_numeric($input) {
