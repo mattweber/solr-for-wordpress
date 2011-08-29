@@ -885,6 +885,15 @@ function s4w_query( $qry, $offset, $count, $fq, $sortby) {
       $facet_fields[] = 'type';
     }
     
+    
+    $facet_on_custom_taxonomy = s4w_get_option('s4w_facet_on_taxonomy');
+    if (count($facet_on_custom_taxonomy)>0) {
+      $taxonomies = (array)get_taxonomies(array('_builtin'=>FALSE),'names');
+      foreach($taxonomies as $parent) {
+        $facet_fields[] = $parent."_taxonomy";
+      }
+    }
+    
     $facet_on_custom_fields = s4w_get_option('s4w_facet_on_custom_fields');
     if (count($facet_on_custom_fields)>0) {
         foreach ( $facet_on_custom_fields as $field_name ) {
