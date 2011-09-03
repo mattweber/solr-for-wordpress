@@ -896,11 +896,20 @@ function s4w_query( $qry, $offset, $count, $fq, $sortby) {
       $facet_fields[] = 'type';
     }
     
-    $facet_on_custom_fields = $plugin_s4w_settings['s4w_facet_on_custom_fields'];
-    if (is_array($facet_on_custom_fields)) {
-      foreach ( $facet_on_custom_fields as $field_name ) {
-      	$facet_fields[] = $field_name . '_str';
+    
+    $facet_on_custom_taxonomy = $plugin_s4w_settings['s4w_facet_on_taxonomy'];
+    if (count($facet_on_custom_taxonomy)) {
+      $taxonomies = (array)get_taxonomies(array('_builtin'=>FALSE),'names');
+      foreach($taxonomies as $parent) {
+        $facet_fields[] = $parent."_taxonomy";
       }
+    }
+    
+    $facet_on_custom_fields = $plugin_s4w_settings['s4w_facet_on_custom_fields'];
+    if (count($facet_on_custom_fields)) {
+        foreach ( $facet_on_custom_fields as $field_name ) {
+        	$facet_fields[] = $field_name . '_str';
+        }
     }   	
     
     if ( $solr ) {
