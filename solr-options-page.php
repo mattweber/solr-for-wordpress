@@ -39,7 +39,7 @@ if ($s4w_settings['s4w_solr_initialized'] != 1) {
   $options['s4w_output_info'] = 1;
   $options['s4w_output_pager'] = 1;
   $options['s4w_output_facets'] = 1;
-  //$options['s4w_exclude_pages', array());
+  $options['s4w_exclude_pages'] =  array();
   $options['s4w_exclude_pages'] = '';  
   $options['s4w_num_results'] = 5;
   $options['s4w_cat_as_taxo'] = 1;
@@ -53,8 +53,8 @@ if ($s4w_settings['s4w_solr_initialized'] != 1) {
   $options['s4w_enable_dym'] = 1;
   $options['s4w_index_comments'] = 1;
   $options['s4w_connect_type'] = 'solr';
-  //$options['s4w_index_custom_fields', array());
-  //$options['s4w_facet_on_custom_fields', array());
+  $options['s4w_index_custom_fields'] =  array();
+  $options['s4w_facet_on_custom_fields'] =  array();
   $options['s4w_index_custom_fields'] = '';  
   $options['s4w_facet_on_custom_fields'] = '';  
   
@@ -220,7 +220,7 @@ if ($_POST['s4w_ping']) {
     </tr>
     <tr valign="top">
         <th scope="row"><?php _e('Excludes Posts or Pages (comma separated ids list)') ?></th>
-        <td><input type="text" name="settings[s4w_exclude_pages]" value="<?php print( s4w_filter_list2str($s4w_settings['s4w_exclude_pages'], 'solr4wp')); ?>" /></td>
+        <td><input type="text" name="settings[s4w_exclude_pages]" value="<?php print(s4w_filter_list2str($s4w_settings['s4w_exclude_pages'], 'solr4wp')); ?>" /></td>
     </tr>
 </table>
 <hr />
