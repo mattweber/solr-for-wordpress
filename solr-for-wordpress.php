@@ -39,7 +39,7 @@ if (version_compare($wp_version, '3.0', '<')) {
     exit ($errmsg);
 }
 
-require_once(dirname(__FILE__) . '/Apache/Solr/Service.php');
+require_once(dirname(__FILE__) . '/SolrPhpClient/Apache/Solr/Service.php');
 
 function s4w_get_option() {
     $indexall = FALSE;
