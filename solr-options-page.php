@@ -30,6 +30,9 @@ if ($s4w_settings['s4w_solr_initialized'] != 1) {
   $options['s4w_solr_host'] = 'localhost';
   $options['s4w_solr_port'] = 8983;
   $options['s4w_solr_path'] = '/solr';
+  $options['s4w_solr_update_host'] = $options['s4w_solr_host'];
+  $options['s4w_solr_update_port'] = $options['s4w_solr_port'];
+  $options['s4w_solr_update_path'] = $options['s4w_solr_path'];  
   $options['s4w_index_pages'] = 1;
   $options['s4w_index_posts'] = 1;
   $options['s4w_delete_page'] = 1;
@@ -165,16 +168,44 @@ if ($_POST['s4w_ping']) {
 			<label><?php _e('Solr Path', 'solr4wp') ?></label>
 			<p><input type="text" name="settings[s4w_solr_path]" value="<?php _e($s4w_settings['s4w_solr_path'], 'solr4wp'); ?>" /></p>
 		</div>
+		<div class="solr_adminR2" id="solr_admin_tab3">
+		  <table>
+		    <tr>
+		  <td>
+			<label><?php _e('Solr Host', 'solr4wp') ?></label>
+			<p><input type="text" name="settings[s4w_solr_host]" value="<?php _e($s4w_settings['s4w_solr_host'], 'solr4wp'); ?>" /></p>
+			<label><?php _e('Solr Port', 'solr4wp') ?></label>
+			<p><input type="text" name="settings[s4w_solr_port]" value="<?php _e($s4w_settings['s4w_solr_port'], 'solr4wp'); ?>" /></p>
+			<label><?php _e('Solr Path', 'solr4wp') ?></label>
+			<p><input type="text" name="settings[s4w_solr_path]" value="<?php _e($s4w_settings['s4w_solr_path'], 'solr4wp'); ?>" /></p>		  
+			</td>
+			<td>
+			<label><?php _e('Solr Update Host', 'solr4wp') ?></label>
+			<p><input type="text" name="settings[s4w_solr_update_host]" value="<?php _e($s4w_settings['s4w_solr_update_host'], 'solr4wp'); ?>" /></p>
+			<label><?php _e('Solr Update Port', 'solr4wp') ?></label>
+			<p><input type="text" name="settings[s4w_solr_update_port]" value="<?php _e($s4w_settings['s4w_solr_update_port'], 'solr4wp'); ?>" /></p>
+			<label><?php _e('Solr Update Path', 'solr4wp') ?></label>
+			<p><input type="text" name="settings[s4w_solr_update_path]" value="<?php _e($s4w_settings['s4w_solr_update_path'], 'solr4wp'); ?>" /></p>
+			</td>
+			</tr>
+			</table>
+		</div>		
 	</div>
 	<ol>
 		<li id="solr_admin_tab1_btn" class="solr_admin_tab1">
 		</li>
 		<li id="solr_admin_tab2_btn" class="solr_admin_tab2">
-			<h4><input id="solrconnect" name="settings[s4w_connect_type]" type="radio" value="solr" <?php s4w_checkConnectOption($s4w_settings['s4w_connect_type'], 'solr'); ?> onclick="switch1();" />Solr Server</h4>
+			<h4><input id="solrconnect_single" name="settings[s4w_connect_type]" type="radio" value="solr_single" <?php s4w_checkConnectOption($s4w_settings['s4w_connect_type'], 'solr_single'); ?> onclick="switch1();" />Single Solr Server</h4>
 			<ol>
 				<li>Download, install and configure your own <a href="">Apache Solr 1.4</a> instance</li>
 			</ol>
 		</li>
+		<li id="solr_admin_tab3_btn" class="solr_admin_tab3">
+			<h4><input id="solrconnect_separated" name="settings[s4w_connect_type]" type="radio" value="solr_separated" <?php s4w_checkConnectOption($s4w_settings['s4w_connect_type'], 'solr_separated'); ?> onclick="switch1();" />Separated Solr Servers</h4>
+			<ol>
+				<li>Separate URL's for updates and searches.</li>
+			</ol>
+		</li>		
 	</ol>
 </div>
 <hr />
