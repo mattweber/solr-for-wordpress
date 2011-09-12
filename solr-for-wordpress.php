@@ -72,11 +72,36 @@ function s4w_update_option($optval) {
 }
 
 function s4w_get_solr($ping = FALSE) {
-    # get the connection options
+    # get the connection options for Searches
     $plugin_s4w_settings = s4w_get_option();
     $host = $plugin_s4w_settings['s4w_solr_host'];
     $port = $plugin_s4w_settings['s4w_solr_port'];
     $path = $plugin_s4w_settings['s4w_solr_path'];
+    
+    # double check everything has been set
+    if ( ! ($host and $port and $path) ) {
+        return NULL;
+    }
+    
+    # create the solr service object
+    $solr = new Apache_Solr_Service($host, $port, $path);
+    
+    # if we want to check if the server is alive, ping it
+    if ($ping) {
+        if ( ! $solr->ping() ) {
+            $solr = NULL;
+        }
+    }
+    
+    return $solr;
+}
+
+function s4w_get_update_solr($ping = FALSE) {
+    # get the connection options for doing Updates
+    $plugin_s4w_settings = s4w_get_option();
+    $host = $plugin_s4w_settings['s4w_solr_update_host'];
+    $port = $plugin_s4w_settings['s4w_solr_update_port'];
+    $path = $plugin_s4w_settings['s4w_solr_update_path'];
     
     # double check everything has been set
     if ( ! ($host and $port and $path) ) {
@@ -215,7 +240,7 @@ function s4w_format_date( $thedate ) {
 
 function s4w_post( $documents, $commit = TRUE, $optimize = FALSE) { 
     try {
-        $solr = s4w_get_solr();
+        $solr = s4w_get_update_solr();
         if ( ! $solr == NULL ) {
             
             if ($documents) {
@@ -237,7 +262,7 @@ function s4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
 
 function s4w_optimize() {
     try {
-        $solr = s4w_get_solr();
+        $solr = s4w_get_update_solr();
         if ( ! $solr == NULL ) {
             $solr->optimize();
         }
@@ -248,7 +273,7 @@ function s4w_optimize() {
 
 function s4w_delete( $doc_id ) {
     try {
-        $solr = s4w_get_solr();
+        $solr = s4w_get_update_solr();
         if ( ! $solr == NULL ) {
             $solr->deleteById( $doc_id );
             $solr->commit();
@@ -260,7 +285,7 @@ function s4w_delete( $doc_id ) {
 
 function s4w_delete_all() {
     try {
-        $solr = s4w_get_solr();
+        $solr = s4w_get_update_solr();
         if ( ! $solr == NULL ) {
             $solr->deleteByQuery( '*:*' );
             $solr->commit();
@@ -272,7 +297,7 @@ function s4w_delete_all() {
 
 function s4w_delete_blog($blogid) {
     try {
-        $solr = s4w_get_solr();
+        $solr = s4w_get_update_solr();
         if ( ! $solr == NULL ) {
             $solr->deleteByQuery( "blogid:{$blogid}" );
             $solr->commit();
@@ -975,6 +1000,9 @@ function s4w_sanitise_options($options) {
   $options['s4w_solr_host'] = wp_filter_nohtml_kses($options['s4w_solr_host']);
   $options['s4w_solr_port'] = absint($options['s4w_solr_port']);
   $options['s4w_solr_path'] = wp_filter_nohtml_kses($options['s4w_solr_path']);
+  $options['s4w_solr_update_host'] = wp_filter_nohtml_kses($options['s4w_solr_update_host']);
+  $options['s4w_solr_update_port'] = absint($options['s4w_solr_update_port']);
+  $options['s4w_solr_update_path'] = wp_filter_nohtml_kses($options['s4w_solr_update_path']);  
   $options['s4w_index_pages'] = absint($options['s4w_index_pages']);
   $options['s4w_index_posts'] = absint($options['s4w_index_posts']);
   $options['s4w_index_comments'] = absint($options['s4w_index_comments']); 
@@ -1075,11 +1103,20 @@ function s4w_admin_head() {
     var $j = jQuery.noConflict();
     
     function switch1() {
-        if ($j('#solrconnect').is(':checked')) {
+        if ($j('#solrconnect_single').is(':checked')) {
             $j('#solr_admin_tab2').css('display', 'block');
             $j('#solr_admin_tab2_btn').addClass('solr_admin_on');         
+            $j('#solr_admin_tab3').css('display', 'none');
+            $j('#solr_admin_tab3_btn').removeClass('solr_admin_on');            
         }
+        if ($j('#solrconnect_separated').is(':checked')) {
+            $j('#solr_admin_tab2').css('display', 'none');
+            $j('#solr_admin_tab2_btn').removeClass('solr_admin_on');  
+            $j('#solr_admin_tab3').css('display', 'block');
+            $j('#solr_admin_tab3_btn').addClass('solr_admin_on');                   
+        }        
     }
+ 
     
     function doLoad($type, $prev) {
         if ($prev == null) {
