@@ -195,6 +195,7 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         	foreach ((array)$index_custom_fields as $field_name ) {
           	$field = (array)$custom_fields[$field_name];
     				foreach ( $field as $key => $value ) {
+    					$value = preg_replace('/\r\n/', ' ', $value);
     					$doc->addField($field_name . '_str', $value);
     					$doc->addField($field_name . '_srch', $value);
     				}
