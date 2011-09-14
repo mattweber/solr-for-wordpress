@@ -27,9 +27,7 @@ $s4w_settings = s4w_get_option('plugin_s4w_settings');
 if ($s4w_settings['s4w_solr_initialized'] != 1) {
   
   $options['s4w_index_all_sites'] = 0;
-  $options['s4w_solr_host'] = 'localhost';
-  $options['s4w_solr_port'] = 8983;
-  $options['s4w_solr_path'] = '/solr';
+  $options['s4w_server_info'][] = array('host'=>'localhost','port'=>8983, 'path'=>'/solr');
   $options['s4w_solr_update_host'] = $options['s4w_solr_host'];
   $options['s4w_solr_update_port'] = $options['s4w_solr_port'];
   $options['s4w_solr_update_path'] = $options['s4w_solr_path'];  
@@ -162,32 +160,34 @@ if ($_POST['s4w_ping']) {
 	<div class="solr_adminR">
 		<div class="solr_adminR2" id="solr_admin_tab2">
 			<label><?php _e('Solr Host', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_solr_host]" value="<?php _e($s4w_settings['s4w_solr_host'], 'solr4wp'); ?>" /></p>
+			<p><input type="text" name="settings[s4w_server_info][0][host]" value="<?php _e($s4w_settings['s4w_server_info'][0]['host'], 'solr4wp'); ?>" /></p>
 			<label><?php _e('Solr Port', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_solr_port]" value="<?php _e($s4w_settings['s4w_solr_port'], 'solr4wp'); ?>" /></p>
+			<p><input type="text" name="settings[s4w_server_info][0][port]" value="<?php _e($s4w_settings['s4w_server_info'][0]['port'], 'solr4wp'); ?>" /></p>
 			<label><?php _e('Solr Path', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_solr_path]" value="<?php _e($s4w_settings['s4w_solr_path'], 'solr4wp'); ?>" /></p>
+			<p><input type="text" name="settings[s4w_server_info][0][path]" value="<?php _e($s4w_settings['s4w_server_info'][0]['path'], 'solr4wp'); ?>" /></p>
 		</div>
 		<div class="solr_adminR2" id="solr_admin_tab3">
 		  <table>
-		    <tr>
-		  <td>
-			<label><?php _e('Solr Host', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_solr_host]" value="<?php _e($s4w_settings['s4w_solr_host'], 'solr4wp'); ?>" /></p>
-			<label><?php _e('Solr Port', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_solr_port]" value="<?php _e($s4w_settings['s4w_solr_port'], 'solr4wp'); ?>" /></p>
-			<label><?php _e('Solr Path', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_solr_path]" value="<?php _e($s4w_settings['s4w_solr_path'], 'solr4wp'); ?>" /></p>		  
-			</td>
-			<td>
-			<label><?php _e('Solr Update Host', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_solr_update_host]" value="<?php _e($s4w_settings['s4w_solr_update_host'], 'solr4wp'); ?>" /></p>
-			<label><?php _e('Solr Update Port', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_solr_update_port]" value="<?php _e($s4w_settings['s4w_solr_update_port'], 'solr4wp'); ?>" /></p>
-			<label><?php _e('Solr Update Path', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_solr_update_path]" value="<?php _e($s4w_settings['s4w_solr_update_path'], 'solr4wp'); ?>" /></p>
-			</td>
-			</tr>
+  		  <tr>
+  		  <?php 
+  		    //we are working with multiserver setup so lets
+  		    //lets provide an extra fields for extra host on the fly by appending an empty array
+  		    //this will always give a count of current servers+1
+  		    $s4w_settings['s4w_server_info'][] = array('host'=>'','port'=>'', 'path'=>'');
+  		    foreach ($s4w_settings['s4w_server_info'] as $server_id => $server) { 
+  		  ?>
+    		  <td>
+    			<label><?php _e('Solr Host', 'solr4wp') ?></label>
+    			<p><input type="text" name="settings[s4w_server_info][<?php echo $server_id ?>][host]" value="<?php echo $server['host'] ?>" /></p>
+    			<label><?php _e('Solr Port', 'solr4wp') ?></label>
+    			<p><input type="text" name="settings[s4w_server_info][<?php echo $server_id ?>][port]" value="<?php echo $server['port'] ?>" /></p>
+    			<label><?php _e('Solr Path', 'solr4wp') ?></label>
+    			<p><input type="text" name="settings[s4w_server_info][<?php echo $server_id ?>][path]" value="<?php echo $server['path'] ?>" /></p>		  
+    			</td>
+    			<?php 
+    			  }
+    			?>
+  			</tr>
 			</table>
 		</div>		
 	</div>

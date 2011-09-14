@@ -80,13 +80,30 @@ function s4w_get_solr($server='default') {
 
   # double check everything has been set
   if ( ! ($host and $port and $path) ) {
-      return NULL;
+    return NULL;
   }
 
   # create the solr service object
   $solr = new Apache_Solr_Service($host, $port, $path);
 
   return $solr;
+}
+
+
+/**
+ * check if the server by pinging it
+ * @param server if wanting to ping a different 
+ *        server than default provide name
+ * @return boolean
+ */
+function s4w_ping_server($server='default') {
+  $solr = s4w_get_solr($server);
+  $ping = FALSE;
+  # if we want to check if the server is alive, ping it
+  if ($solr->ping()) {
+    $ping = TRUE;
+  }
+  return $ping;
 }
 
 function s4w_get_update_solr($ping = FALSE) {
