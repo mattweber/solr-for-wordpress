@@ -298,6 +298,18 @@ div.solr_noresult {
 .solr_admin_tab2 h4 {
 	font-size: 18px;
 }
+
+.solr_admin_tab3 {
+	border-right: 1px solid #cccccc;
+	border-bottom: 1px solid #cccccc;
+	border-left: 1px solid #cccccc;
+	-moz-border-radius-bottomleft:6px;
+	-webkit-border-bottom-left-radius:6px;
+}
+
+.solr_admin_tab3 h4 {
+	font-size: 18px;
+}
 .solr_adminR {
 	background: #ffffff;
 	float: right;
