@@ -71,29 +71,35 @@ function s4w_update_option($optval) {
     }
 }
 
-function s4w_get_solr($ping = FALSE) {
-    # get the connection options
-    $plugin_s4w_settings = s4w_get_option();
-    $host = $plugin_s4w_settings['s4w_solr_host'];
-    $port = $plugin_s4w_settings['s4w_solr_port'];
-    $path = $plugin_s4w_settings['s4w_solr_path'];
-    
-    # double check everything has been set
-    if ( ! ($host and $port and $path) ) {
-        return NULL;
-    }
-    
-    # create the solr service object
-    $solr = new Apache_Solr_Service($host, $port, $path);
-    
-    # if we want to check if the server is alive, ping it
-    if ($ping) {
-        if ( ! $solr->ping() ) {
-            $solr = NULL;
-        }
-    }
-    
-    return $solr;
+function s4w_get_solr($server='default') {
+  # get the connection options
+  $plugin_s4w_settings = s4w_get_option();
+  $host = $plugin_s4w_settings['s4w_solr_host'];
+  $port = $plugin_s4w_settings['s4w_solr_port'];
+  $path = $plugin_s4w_settings['s4w_solr_path'];
+
+  # double check everything has been set
+  if ( ! ($host and $port and $path) ) {
+      return NULL;
+  }
+
+  # create the solr service object
+  $solr = new Apache_Solr_Service($host, $port, $path);
+
+  return $solr;
+}
+
+/**
+ * 
+ */
+function s4w_ping_server($server='default') {
+  $solr = s4w_get_solr($server);
+  $ping = FALSE;
+  # if we want to check if the server is alive, ping it
+  if ($solr->ping()) {
+    $ping = TRUE;
+  }
+  return $ping;
 }
 
 function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {

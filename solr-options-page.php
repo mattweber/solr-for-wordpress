@@ -127,7 +127,7 @@ function s4w_checkConnectOption($optionType, $connectType) {
 
 # check for any POST settings
 if ($_POST['s4w_ping']) {
-    if (s4w_get_solr(true)) {
+    if (s4w_ping_server()) {
 ?>
 <div id="message" class="updated fade"><p><strong><?php _e('Ping Success!', 'solr4wp') ?></strong></p></div>
 <?php
