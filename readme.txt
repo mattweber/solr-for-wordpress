@@ -129,4 +129,5 @@ Login to the WordPress admin, select pages, click the page you want to exclude. 
 
 == Credits ==
 
-Dominique Bejean for custom field support.
+Dominique Bejean for custom field support and testing.
+Eric Pugh multi server support.
