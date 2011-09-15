@@ -24,7 +24,7 @@
 //get the plugin settings
 $s4w_settings = s4w_get_option('plugin_s4w_settings');
 #set defaults if not initialized
-if ($s4w_settings['s4w_solr_initialized'] == 1) {
+if ($s4w_settings['s4w_solr_initialized'] != 1) {
   
   $options['s4w_index_all_sites'] = 0;
   $options['s4w_server']['info']['master']= array('host'=>'localhost','port'=>8983, 'path'=>'/solr');
