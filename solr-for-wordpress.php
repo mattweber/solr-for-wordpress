@@ -71,13 +71,12 @@ function s4w_update_option($optval) {
     }
 }
 
-function s4w_get_solr($server='default') {
+function s4w_get_solr($server='master') {
   # get the connection options
   $plugin_s4w_settings = s4w_get_option();
-  $host = $plugin_s4w_settings['s4w_solr_host'];
-  $port = $plugin_s4w_settings['s4w_solr_port'];
-  $path = $plugin_s4w_settings['s4w_solr_path'];
-
+  $host = $plugin_s4w_settings['s4w_server_info'][$server]['host'];
+  $port = $plugin_s4w_settings['s4w_server_info'][$server]['port'];
+  $path = $plugin_s4w_settings['s4w_server_info'][$server]['path'];
   # double check everything has been set
   if ( ! ($host and $port and $path) ) {
     return NULL;
@@ -96,7 +95,7 @@ function s4w_get_solr($server='default') {
  *        server than default provide name
  * @return boolean
  */
-function s4w_ping_server($server='default') {
+function s4w_ping_server($server='master') {
   $solr = s4w_get_solr($server);
   $ping = FALSE;
   # if we want to check if the server is alive, ping it
@@ -104,31 +103,6 @@ function s4w_ping_server($server='default') {
     $ping = TRUE;
   }
   return $ping;
-}
-
-function s4w_get_update_solr($ping = FALSE) {
-    # get the connection options for doing Updates
-    $plugin_s4w_settings = s4w_get_option();
-    $host = $plugin_s4w_settings['s4w_solr_update_host'];
-    $port = $plugin_s4w_settings['s4w_solr_update_port'];
-    $path = $plugin_s4w_settings['s4w_solr_update_path'];
-    
-    # double check everything has been set
-    if ( ! ($host and $port and $path) ) {
-        return NULL;
-    }
-    
-    # create the solr service object
-    $solr = new Apache_Solr_Service($host, $port, $path);
-    
-    # if we want to check if the server is alive, ping it
-    if ($ping) {
-        if ( ! $solr->ping() ) {
-            $solr = NULL;
-        }
-    }
-    
-    return $solr;
 }
 
 function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
@@ -250,7 +224,7 @@ function s4w_format_date( $thedate ) {
 
 function s4w_post( $documents, $commit = TRUE, $optimize = FALSE) { 
     try {
-        $solr = s4w_get_update_solr();
+        $solr = s4w_get_solr();
         if ( ! $solr == NULL ) {
             
             if ($documents) {
@@ -272,7 +246,7 @@ function s4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
 
 function s4w_optimize() {
     try {
-        $solr = s4w_get_update_solr();
+        $solr = s4w_get_solr();
         if ( ! $solr == NULL ) {
             $solr->optimize();
         }
@@ -283,7 +257,7 @@ function s4w_optimize() {
 
 function s4w_delete( $doc_id ) {
     try {
-        $solr = s4w_get_update_solr();
+        $solr = s4w_get_solr();
         if ( ! $solr == NULL ) {
             $solr->deleteById( $doc_id );
             $solr->commit();
@@ -295,7 +269,7 @@ function s4w_delete( $doc_id ) {
 
 function s4w_delete_all() {
     try {
-        $solr = s4w_get_update_solr();
+        $solr = s4w_get_solr();
         if ( ! $solr == NULL ) {
             $solr->deleteByQuery( '*:*' );
             $solr->commit();
@@ -307,7 +281,7 @@ function s4w_delete_all() {
 
 function s4w_delete_blog($blogid) {
     try {
-        $solr = s4w_get_update_solr();
+        $solr = s4w_get_solr();
         if ( ! $solr == NULL ) {
             $solr->deleteByQuery( "blogid:{$blogid}" );
             $solr->commit();
