@@ -111,9 +111,15 @@ if ($_POST['action'] == 'update') {
 
     }
     if ( !is_array($value) ) $value = trim($value); 
+
     $value = stripslashes_deep($value);
     $s4w_settings[$option] = $value;
-  }    
+  }
+  //if we are in single server mode set the server types to master
+  if ($s4w_settings['s4w_connect_type'] =='solr_single'){
+    $s4w_settings['s4w_server']['type']['search'] = 'master';
+    $s4w_settings['s4w_server']['type']['update'] = 'master';
+  }
   //lets save our options array
   s4w_update_option($s4w_settings);
 
@@ -176,6 +182,8 @@ if ($_POST['s4w_ping']) {
 	<div class="solr_adminR">
 		<div class="solr_adminR2" id="solr_admin_tab2">
 			<label><?php _e('Solr Host', 'solr4wp') ?></label>
+			<input name="settings[s4w_server][type][update]" type="hidden" value="master" />
+			<input name="settings[s4w_server][type][search]" type="hidden" value="master" />
 			<p><input type="text" name="settings[s4w_server][info][master][host]" value="<?php echo $s4w_settings['s4w_server']['info']['master']['host']?>" /></p>
 			<label><?php _e('Solr Port', 'solr4wp') ?></label>
 			<p><input type="text" name="settings[s4w_server][info][master][port]" value="<?php echo $s4w_settings['s4w_server']['info']['master']['port']?>" /></p>
