@@ -27,7 +27,7 @@ $s4w_settings = s4w_get_option('plugin_s4w_settings');
 if ($s4w_settings['s4w_solr_initialized'] != 1) {
   
   $options['s4w_index_all_sites'] = 0;
-  $options['s4w_server_info'][] = array('host'=>'localhost','port'=>8983, 'path'=>'/solr');
+  $options['s4w_server_info']['master'] = array('name'=>'Indexing Server (Master)','host'=>'localhost','port'=>8983, 'path'=>'/solr');
   $options['s4w_solr_update_host'] = $options['s4w_solr_host'];
   $options['s4w_solr_update_port'] = $options['s4w_solr_port'];
   $options['s4w_solr_update_path'] = $options['s4w_solr_path'];  
@@ -160,11 +160,11 @@ if ($_POST['s4w_ping']) {
 	<div class="solr_adminR">
 		<div class="solr_adminR2" id="solr_admin_tab2">
 			<label><?php _e('Solr Host', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_server_info][0][host]" value="<?php _e($s4w_settings['s4w_server_info'][0]['host'], 'solr4wp'); ?>" /></p>
+			<p><input type="text" name="settings[s4w_server_info][master][host]" value="<?php _e($s4w_settings['s4w_server_info']['master']['host'], 'solr4wp'); ?>" /></p>
 			<label><?php _e('Solr Port', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_server_info][0][port]" value="<?php _e($s4w_settings['s4w_server_info'][0]['port'], 'solr4wp'); ?>" /></p>
+			<p><input type="text" name="settings[s4w_server_info][master][port]" value="<?php _e($s4w_settings['s4w_server_info']['master']['port'], 'solr4wp'); ?>" /></p>
 			<label><?php _e('Solr Path', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_server_info][0][path]" value="<?php _e($s4w_settings['s4w_server_info'][0]['path'], 'solr4wp'); ?>" /></p>
+			<p><input type="text" name="settings[s4w_server_info][master][path]" value="<?php _e($s4w_settings['s4w_server_info']['master']['path'], 'solr4wp'); ?>" /></p>
 		</div>
 		<div class="solr_adminR2" id="solr_admin_tab3">
 		  <table>
@@ -177,6 +177,8 @@ if ($_POST['s4w_ping']) {
   		    foreach ($s4w_settings['s4w_server_info'] as $server_id => $server) { 
   		  ?>
     		  <td>
+    			<label><?php _e('Name', 'solr4wp') ?></label>
+    			<p><input type="text" name="settings[s4w_server_info][<?php echo $server_id ?>][name]" value="<?php echo $server['name'] ?>" /></p>
     			<label><?php _e('Solr Host', 'solr4wp') ?></label>
     			<p><input type="text" name="settings[s4w_server_info][<?php echo $server_id ?>][host]" value="<?php echo $server['host'] ?>" /></p>
     			<label><?php _e('Solr Port', 'solr4wp') ?></label>
