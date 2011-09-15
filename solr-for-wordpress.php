@@ -75,16 +75,16 @@ function s4w_update_option($optval) {
  * @param $server_id string/int its either master or array index
  * @return solr service object
  */
-function s4w_get_solr($server_id='master') {
+function s4w_get_solr($server_id = NULL) {
   # get the connection options
   $plugin_s4w_settings = s4w_get_option();
   //if the provided server_id does not exist use the default id 'master'
-  if(!$plugin_s4w_settings['s4w_server_info'][$server]['host']) {
-    $server_id = 'master';
+  if(!$plugin_s4w_settings['s4w_server']['info'][$server_id]['host']) {
+    $server_id = $plugin_s4w_settings['s4w_server']['type']['update'];
   }
-  $host = $plugin_s4w_settings['s4w_server_info'][$server_id]['host'];
-  $port = $plugin_s4w_settings['s4w_server_info'][$server_id]['port'];
-  $path = $plugin_s4w_settings['s4w_server_info'][$server_id]['path'];
+  $host = $plugin_s4w_settings['s4w_server']['info'][$server_id]['host'];
+  $port = $plugin_s4w_settings['s4w_server']['info'][$server_id]['port'];
+  $path = $plugin_s4w_settings['s4w_server']['info'][$server_id]['path'];
   # double check everything has been set
   if ( ! ($host and $port and $path) ) {
     return NULL;
@@ -103,7 +103,7 @@ function s4w_get_solr($server_id='master') {
  *        server than default provide name
  * @return boolean
  */
-function s4w_ping_server($server='master') {
+function s4w_ping_server($server_id = NULL) {
   $solr = s4w_get_solr($server);
   $ping = FALSE;
   # if we want to check if the server is alive, ping it
@@ -895,19 +895,24 @@ function s4w_gen_taxo_array($in, $vals) {
  * This allows for extensible server/core based query functions.
  * TODO allow for similar theme/output function
  */
-function s4w_query( $qry, $offset, $count, $fq, $sortby, $server='master') {
+function s4w_query( $qry, $offset, $count, $fq, $sortby, $server= NULL) {
+  //NOTICE: does this needs to be cached to stop the db being hit to grab the options everytime search is being done.
+  $plugin_s4w_settings = s4w_get_option();
+  //if no server has been provided use the default server
+  if(!$server) {
+    $server = $plugin_s4w_settings['s4w_server']['type']['search'];
+  }
   $solr = s4w_get_solr($server);
   if (!function_exists($function = 's4w_'.$server.'_query')) {
     $function = 's4w_master_query';
   }
   
-  return $function($solr, $qry, $offset, $count, $fq, $sortby);
+  return $function($solr, $qry, $offset, $count, $fq, $sortby, $plugin_s4w_settings);
 }
 
-function s4w_master_query($solr, $qry, $offset, $count, $fq, $sortby) {
+function s4w_master_query($solr, $qry, $offset, $count, $fq, $sortby, &$plugin_s4w_settings) {
     $response = NULL;
     $facet_fields = array();
-    $plugin_s4w_settings = s4w_get_option();
     $number_of_tags = $plugin_s4w_settings['s4w_max_display_tags'];
     
     if ($plugin_s4w_settings['s4w_facet_on_categories']) {

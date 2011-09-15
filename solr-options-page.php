@@ -27,10 +27,10 @@ $s4w_settings = s4w_get_option('plugin_s4w_settings');
 if ($s4w_settings['s4w_solr_initialized'] != 1) {
   
   $options['s4w_index_all_sites'] = 0;
-  $options['s4w_server_info']['master'] = array('name'=>'Indexing Server (Master)','host'=>'localhost','port'=>8983, 'path'=>'/solr');
-  $options['s4w_solr_update_host'] = $options['s4w_solr_host'];
-  $options['s4w_solr_update_port'] = $options['s4w_solr_port'];
-  $options['s4w_solr_update_path'] = $options['s4w_solr_path'];  
+  $options['s4w_server']['info']['master']= array('host'=>'localhost','port'=>8983, 'path'=>'/solr');
+  $options['s4w_server']['type']['search'] = 'master';
+  $options['s4w_server']['type']['update'] = 'master';
+  
   $options['s4w_index_pages'] = 1;
   $options['s4w_index_posts'] = 1;
   $options['s4w_delete_page'] = 1;
@@ -93,7 +93,23 @@ if ($_POST['action'] == 'update') {
   //lets loop through our setting fields $_POST['settings']
   foreach ($s4w_settings as $option => $old_value ) {
     $value = $_POST['settings'][$option];
-    if ($option == 's4w_index_all_sites' || $option == 's4w_solr_initialized') $value = trim($old_value);  
+    
+    switch ($option) {
+      case 's4w_index_all_sites':
+      case 's4w_solr_initialized':
+        $value = trim($old_value);
+        break;
+    case 's4w_server_info':
+      //remove empty server entries
+      $s_value = $value;
+      unset($value);
+      foreach ($value as $key => $v) {
+        //lets rename the array_keys
+        if($v['host']) unset($value[$key]);
+      }
+      break;
+
+    }
     if ( !is_array($value) ) $value = trim($value); 
     $value = stripslashes_deep($value);
     $s4w_settings[$option] = $value;
@@ -160,11 +176,11 @@ if ($_POST['s4w_ping']) {
 	<div class="solr_adminR">
 		<div class="solr_adminR2" id="solr_admin_tab2">
 			<label><?php _e('Solr Host', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_server_info][master][host]" value="<?php _e($s4w_settings['s4w_server_info']['master']['host'], 'solr4wp'); ?>" /></p>
+			<p><input type="text" name="settings[s4w_server][info][master][host]" value="<?php echo $s4w_settings['s4w_server']['info']['master']['host']?>" /></p>
 			<label><?php _e('Solr Port', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_server_info][master][port]" value="<?php _e($s4w_settings['s4w_server_info']['master']['port'], 'solr4wp'); ?>" /></p>
+			<p><input type="text" name="settings[s4w_server][info][master][port]" value="<?php echo $s4w_settings['s4w_server']['info']['master']['port']?>" /></p>
 			<label><?php _e('Solr Path', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_server_info][master][path]" value="<?php _e($s4w_settings['s4w_server_info']['master']['path'], 'solr4wp'); ?>" /></p>
+			<p><input type="text" name="settings[s4w_server][info][master][path]" value="<?php echo $s4w_settings['s4w_server']['info']['master']['path']?>" /></p>
 		</div>
 		<div class="solr_adminR2" id="solr_admin_tab3">
 		  <table>
@@ -173,20 +189,22 @@ if ($_POST['s4w_ping']) {
   		    //we are working with multiserver setup so lets
   		    //lets provide an extra fields for extra host on the fly by appending an empty array
   		    //this will always give a count of current servers+1
-  		    $s4w_settings['s4w_server_info'][] = array('host'=>'','port'=>'', 'path'=>'');
-  		    foreach ($s4w_settings['s4w_server_info'] as $server_id => $server) { 
+  		    $serv_count = count($s4w_settings['s4w_server']['info']);
+  		    $s4w_settings['s4w_server']['info'][$serv_count] = array('host'=>'','port'=>'', 'path'=>'');
+  		    foreach ($s4w_settings['s4w_server']['info'] as $server_id => $server) { 
+  		      //lets set serverIDs
+  		      $new_id =(is_numeric($server_id)) ? 'slave_'.$server_id : $server_id ;
   		  ?>
     		  <td>
-    		  <label><?php _e('ServerID', 'solr4wp') ?></label>
-    		  <p><strong><?php echo $server_id; ?></strong></p>
-    			<label><?php _e('Description', 'solr4wp') ?></label>
-    			<p><input type="text" name="settings[s4w_server_info][<?php echo $server_id ?>][name]" value="<?php echo $server['name'] ?>" /></p>
-    			<label><?php _e('Solr Host', 'solr4wp') ?></label>
-    			<p><input type="text" name="settings[s4w_server_info][<?php echo $server_id ?>][host]" value="<?php echo $server['host'] ?>" /></p>
+    		  <label><?php _e('ServerID', 'solr4wp') ?>: <strong><?php echo $new_id; ?></strong></label>
+    		  <p>Update Server: &nbsp;&nbsp;<input name="settings[s4w_server][type][update]" type="radio" value="<?php echo $new_id?>" <?php s4w_checkConnectOption($s4w_settings['s4w_server']['type']['update'], $new_id); ?> /></p>
+    			<p>Search Server: &nbsp;&nbsp;<input name="settings[s4w_server][type][search]" type="radio" value="<?php echo $new_id?>" <?php s4w_checkConnectOption($s4w_settings['s4w_server']['type']['search'], $new_id); ?> /></p>
+    		  <label><?php _e('Solr Host', 'solr4wp') ?></label>
+    			<p><input type="text" name="settings[s4w_server][info][<?php echo $new_id ?>][host]" value="<?php echo $server['host'] ?>" /></p>
     			<label><?php _e('Solr Port', 'solr4wp') ?></label>
-    			<p><input type="text" name="settings[s4w_server_info][<?php echo $server_id ?>][port]" value="<?php echo $server['port'] ?>" /></p>
+    			<p><input type="text" name="settings[s4w_server][info][<?php echo $new_id ?>][port]" value="<?php echo $server['port'] ?>" /></p>
     			<label><?php _e('Solr Path', 'solr4wp') ?></label>
-    			<p><input type="text" name="settings[s4w_server_info][<?php echo $server_id ?>][path]" value="<?php echo $server['path'] ?>" /></p>		  
+    			<p><input type="text" name="settings[s4w_server][info][<?php echo $new_id ?>][path]" value="<?php echo $server['path'] ?>" /></p>		  
     			</td>
     			<?php 
     			  }
