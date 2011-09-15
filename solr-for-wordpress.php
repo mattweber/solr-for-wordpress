@@ -616,6 +616,7 @@ function s4w_search_results() {
     $sort = $_GET['sort'];
     $order = $_GET['order'];
     $isdym = $_GET['isdym'];
+    $server = $_GET['server'];
     
     $plugin_s4w_settings = s4w_get_option();
     $output_info = $plugin_s4w_settings['s4w_output_info'];
@@ -684,7 +685,7 @@ function s4w_search_results() {
     }
 
     if ($qry) {
-        $results = s4w_query( $qry, $offset, $count, $fqitms, $sortby );
+        $results = s4w_query( $qry, $offset, $count, $fqitms, $sortby, $server);
 
         if ($results) {
             $response = $results->response;
@@ -895,7 +896,7 @@ function s4w_gen_taxo_array($in, $vals) {
  * This allows for extensible server/core based query functions.
  * TODO allow for similar theme/output function
  */
-function s4w_query( $qry, $offset, $count, $fq, $sortby, $server= NULL) {
+function s4w_query( $qry, $offset, $count, $fq, $sortby, $server = NULL) {
   //NOTICE: does this needs to be cached to stop the db being hit to grab the options everytime search is being done.
   $plugin_s4w_settings = s4w_get_option();
   //if no server has been provided use the default server
