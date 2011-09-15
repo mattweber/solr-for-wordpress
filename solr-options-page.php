@@ -177,7 +177,9 @@ if ($_POST['s4w_ping']) {
   		    foreach ($s4w_settings['s4w_server_info'] as $server_id => $server) { 
   		  ?>
     		  <td>
-    			<label><?php _e('Name', 'solr4wp') ?></label>
+    		  <label><?php _e('ServerID', 'solr4wp') ?></label>
+    		  <p><strong><?php echo $server_id; ?></strong></p>
+    			<label><?php _e('Description', 'solr4wp') ?></label>
     			<p><input type="text" name="settings[s4w_server_info][<?php echo $server_id ?>][name]" value="<?php echo $server['name'] ?>" /></p>
     			<label><?php _e('Solr Host', 'solr4wp') ?></label>
     			<p><input type="text" name="settings[s4w_server_info][<?php echo $server_id ?>][host]" value="<?php echo $server['host'] ?>" /></p>
