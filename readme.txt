@@ -16,14 +16,15 @@ A WordPress plugin that replaces the default WordPress search with Solr.  Featur
 
 *	Index pages and posts
 *	Enable faceting on fields such as tags, categories, author, and page type.
-*   Indexing and faceting on custom fields
-*   Multisite support
+* Indexing and faceting on custom fields
+* Multisite support
 *	Treat the category facet as a taxonomy
 *	Add special template tags so you can create your own custom result pages to match your theme.
-*   Completely replaces default WordPress search, just install and configure.
-*   Completely integrated into default WordPress theme and search widget.
+* Completely replaces default WordPress search, just install and configure.
+* Completely integrated into default WordPress theme and search widget.
 *	Configuration options allow you to select pages to ignore, features to enable/disable, and what type of result information you want output.
-*   i18n Support
+* i18n Support
+* Multi server/core support
 
     Note that this plugin requires you to have an instance of Solr using a schema with the following fields: id, permalink, title, content, numcomments, categories, categoriessrch, tags, tagssrch, author, type, and text.  The facet fields (categories, tags, author, and type) should be string fields.  You can make tagssrch and categoriessrch of any type you want as they are used for general searching.  The plugin is distributed with a Solr schema you can use at `solr-for-wordpress/schema.xml`.
 
@@ -64,6 +65,16 @@ standard Solr http api, then the plugin should work.  Some sites:
 http://www.mysolrserver.com/
 http://www.websolr.com/
 http://powcloud.com/
+
+= Can I run a local instance of Solr for testing? =
+
+Yes, you may grab a copy from the apache website: http://www.apache.org/dist/lucene/solr/1.4.1/
+Since it runs on java solr is platform independent, just make sure you have java install So go ahead and Download the .tgz/.zip file (there is no difference).
+1) Extract the files you have downloaded
+2) Copy the schema file (schema.xml) from this plugin to the folder you extracted 'apache-solr-1.4.1/examples/solr/conf/' (yes overwrite the file there)
+3) Open up terminal and then go to where you extracted the files and inside './apache-solr-1.4.1/examples' run the command "java -jar start.jar"
+
+For any further information please the README that comes with solr.
 
 = What is a taxonomy =
 
