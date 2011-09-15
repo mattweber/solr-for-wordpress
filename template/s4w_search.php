@@ -15,10 +15,20 @@ Template Name: Search
 		<div class="solr_search">
 		    <?php if ($results['qtime']) {
                 printf("<label class='solr_response'>Response time: <span id=\"qrytime\">{$results['qtime']}</span> s</label>");
-            } ?>
+            } 
+            
+            //if server id has been defined keep hold of it
+            $server = $_GET['server'];
+            if($server) {
+              $serverval = '<input name="server" type="hidden" value="'.$server.'" />';
+            }
+            
+            ?>
 
             <form name="searchbox" method="get" id="searchbox" action="">
-			    <input id="qrybox" name="s" type="text" class="solr_field" value="<?php echo $results['query'] ?>"/><input id="searchbtn" type="submit" value="Search" />
+			        <input id="qrybox" name="s" type="text" class="solr_field" value="<?php echo $results['query'] ?>"/>
+			        <?php echo $serverval; ?>
+			        <input id="searchbtn" type="submit" value="Search" />
             </form>
 		</div>
 

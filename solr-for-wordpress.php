@@ -587,8 +587,9 @@ function s4w_load_all_pages($prev) {
 function s4w_search_form() {
     $sort = $_GET['sort'];
     $order = $_GET['order'];
+    $server = $_GET['server'];
     
-  
+    
     if ($sort == 'date') {
         $sortval = __('<option value="score">Score</option><option value="date" selected="selected">Date</option><option value="modified">Last Modified</option>');
     } else if ($sort == 'modified') {
@@ -602,10 +603,13 @@ function s4w_search_form() {
     } else {
         $orderval = __('<option value="desc" selected="selected">Descending</option><option value="asc">Ascending</option>');
     }
+    //if server id has been defined keep hold of it
+    if($server) {
+      $serverval = '<input name="server" type="hidden" value="'.$server.'" />';
+    }
+    $form = __('<form name="searchbox" method="get" id="searchbox" action=""><input type="text" id="qrybox" name="s" value="%s"/><input type="submit" id="searchbtn" /><label for="sortselect" id="sortlabel">Sort By:</label><select name="sort" id="sortselect">%s</select><label for="orderselect" id="orderlabel">Order By:</label><select name="order" id="orderselect">%s</select>%s</form>');
     
-    $form = __('<form name="searchbox" method="get" id="searchbox" action=""><input type="text" id="qrybox" name="s" value="%s"/><input type="submit" id="searchbtn" /><label for="sortselect" id="sortlabel">Sort By:</label><select name="sort" id="sortselect">%s</select><label for="orderselect" id="orderlabel">Order By:</label><select name="order" id="orderselect">%s</select></form>');
-    
-    printf($form, htmlspecialchars(stripslashes($_GET['s'])), $sortval, $orderval);
+    printf($form, htmlspecialchars(stripslashes($_GET['s'])), $sortval, $orderval,$serverval);
 }
 
 function s4w_search_results() {
@@ -630,7 +634,11 @@ function s4w_search_results() {
     if ( ! $qry ) {
         $qry = '';
     }
-    
+    //if server value has been set lets set it up here 
+    // and add it to all the search urls henceforth
+    if ($server) {
+      $serverval = '&server='.$server;
+    }
     # set some default values
     if ( ! $offset ) {
         $offset = 0;
@@ -677,6 +685,8 @@ function s4w_search_results() {
             } else {
                 $selectedfacet['removelink'] = htmlspecialchars(sprintf(__("?s=%s"), urlencode($qry)));
             }
+            //if server is set add it on the end of the url
+            $selectedfacet['removelink'] .=$serverval;
             
             $fqstr = $fqstr . urlencode('||') . $splititm[0] . ':' . urlencode($splititm[1]);
             
@@ -701,7 +711,9 @@ function s4w_search_results() {
                     $dymout = array();
                     $dymout['term'] = htmlspecialchars($didyoumean);
                     $dymout['link'] = htmlspecialchars(sprintf(__("?s=%s&isdym=1"), urlencode($didyoumean)));
-                    $out['dym'] = $dymout;
+                    //if server is set add it on the end of the url
+                    $selectedfacet['removelink'] .=$serverval;
+                    $out['dym'] = $dymout.$serverval;
                 }   
             }
                         
@@ -721,6 +733,8 @@ function s4w_search_results() {
                         $pageritm = array();
                         $pageritm['page'] = sprintf(__("%d"), $pagenum);
                         $pageritm['link'] = htmlspecialchars(sprintf(__("?s=%s&offset=%d&count=%d"), urlencode($qry), $offsetnum, $count));
+                        //if server is set add it on the end of the url
+                        $selectedfacet['removelink'] .=$serverval;
                         $pagerout[] = $pageritm;
                     } else {
                         $pageritm = array();
@@ -756,13 +770,15 @@ function s4w_search_results() {
                                 $taxo = s4w_gen_taxo_array($taxo, $taxovals);
                             }
                             
-                            $facetitms = s4w_get_output_taxo($facet, $taxo, '', $fqstr, $facetfield);
+                            $facetitms = s4w_get_output_taxo($facet, $taxo, '', $fqstr.$serverval, $facetfield);
                             
                         } else {
                             foreach ($facet as $facetval => $facetcnt) {
                                 $facetitm = array();
                                 $facetitm['count'] = sprintf(__("%d"), $facetcnt);
                                 $facetitm['link'] = htmlspecialchars(sprintf(__('?s=%s&fq=%s:%s%s', 'solr4wp'), urlencode($qry), $facetfield, urlencode('"' . $facetval . '"'), $fqstr));
+                                //if server is set add it on the end of the url
+                                $facetitm['link'] .=$serverval;
                                 $facetitm['name'] = $facetval;
                                 $facetitms[] = $facetitm; 
                             }
@@ -824,14 +840,14 @@ function s4w_search_results() {
     $out['sortby'] = $sortby;
     $out['order'] = $order;
     $out['sorting'] = array(
-                        'scoreasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=score&order=asc', urlencode($qry), stripslashes($fq))),
-                        'scoredesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=score&order=desc', urlencode($qry), stripslashes($fq))),
-                        'dateasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=date&order=asc', urlencode($qry), stripslashes($fq))),
-                        'datedesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=date&order=desc', urlencode($qry), stripslashes($fq))),
-                        'modifiedasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=modified&order=asc', urlencode($qry), stripslashes($fq))),
-                        'modifieddesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=modified&order=desc', urlencode($qry), stripslashes($fq))),
-                        'commentsasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=numcomments&order=asc', urlencode($qry), stripslashes($fq))),
-                        'commentsdesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=numcomments&order=desc', urlencode($qry), stripslashes($fq)))
+                        'scoreasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=score&order=asc%s', urlencode($qry), stripslashes($fq), $serverval)),
+                        'scoredesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=score&order=desc%s', urlencode($qry), stripslashes($fq), $serverval)),
+                        'dateasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=date&order=asc%s', urlencode($qry), stripslashes($fq), $serverval)),
+                        'datedesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=date&order=desc%s', urlencode($qry), stripslashes($fq), $serverval)),
+                        'modifiedasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=modified&order=asc%s', urlencode($qry), stripslashes($fq), $serverval)),
+                        'modifieddesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=modified&order=desc%s', urlencode($qry), stripslashes($fq), $serverval)),
+                        'commentsasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=numcomments&order=asc%s', urlencode($qry), stripslashes($fq), $serverval)),
+                        'commentsdesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=numcomments&order=desc%s', urlencode($qry), stripslashes($fq), $serverval))
                     );
     
     return $out;
