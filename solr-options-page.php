@@ -24,7 +24,7 @@
 //get the plugin settings
 $s4w_settings = s4w_get_option('plugin_s4w_settings');
 #set defaults if not initialized
-if ($s4w_settings['s4w_solr_initialized'] != 1) {
+if ($s4w_settings['s4w_solr_initialized'] == 1) {
   
   $options['s4w_index_all_sites'] = 0;
   $options['s4w_server']['info']['master']= array('host'=>'localhost','port'=>8983, 'path'=>'/solr');
@@ -99,13 +99,13 @@ if ($_POST['action'] == 'update') {
       case 's4w_solr_initialized':
         $value = trim($old_value);
         break;
-    case 's4w_server_info':
+    case 's4w_server':
       //remove empty server entries
-      $s_value = $value;
-      unset($value);
-      foreach ($value as $key => $v) {
+      $s_value = &$value['info'];
+      
+      foreach ($s_value as $key => $v) {
         //lets rename the array_keys
-        if($v['host']) unset($value[$key]);
+        if(!$v['host']) unset($s_value[$key]);
       }
       break;
 
