@@ -427,11 +427,33 @@ function s4w_load_all_posts($prev) {
     $percent = 0;
     //multisite logic is decided s4w_get_option
     $plugin_s4w_settings = s4w_get_option();
+    $blog_id = $blog->blog_id;
     if ($plugin_s4w_settings['s4w_index_all_sites']) {
+        // we need to switch what blog we're running as in order for the
+        // documents to be attributed to the correct blog in Solr
+        // lets first stash the site id we're running under now
+        $orig_site_id = $wpdb->blogid;
+
+        // this *will* require a lot of memory to get done, particularly
+        // for blogs with a lot of posts so we do a nasty hack
+        // and increase allowed memory here, hope your host can handle it :)
+        syslog(LOG_ERR,"starting batch import, setting memory limit to 1GB"); 
+        ini_set('memory_limit', '1024M');
+
+        // get a list of blog ids
         $bloglist = $wpdb->get_col("SELECT * FROM {$wpdb->base_prefix}blogs", 0);
         foreach ($bloglist as $bloginfo) {
-            $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo->blog_id}_posts WHERE post_status = 'publish' AND post_type = 'post' ORDER BY ID;");
+
+            // for each blog we need to import we get their id 
+            // and tell wordpress to switch to that blog
+            $blog_id = trim($bloginfo);
+            $wpdb->set_blog_id($blog_id);
+            wpmu_current_site();
+
+            // now we actually gather the blog posts
+            $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo}_posts WHERE post_status = 'publish' AND post_type = 'post' ORDER BY ID;");
             $postcount = count($postids);
+            syslog(LOG_INFO,"found $postcount for blog_id $bloginfo");
             for ($idx = 0; $idx < $postcount; $idx++) {
                 
                 $postid = $postids[$idx]->ID;
@@ -453,12 +475,17 @@ function s4w_load_all_posts($prev) {
                 $cnt++;
                 if ($cnt == $batchsize) {
                     s4w_post( $documents, FALSE, FALSE);
+                    s4w_post(FALSE, TRUE, FALSE);
                     $cnt = 0;
                     $documents = array();
                     break;
                 }
             }
         }
+
+        // done importing so lets switch back to the proper blog id
+        $wpdb->set_blog_id($original_blog_id);
+        wpmu_current_site();
     } else {
         $posts = $wpdb->get_results("SELECT ID FROM $wpdb->posts WHERE post_status = 'publish' AND post_type = 'post' ORDER BY ID;" );
         $postcount = count($posts);
