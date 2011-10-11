@@ -732,9 +732,7 @@ function s4w_search_results() {
                         $offsetnum = ($pagenum - 1) * $count;
                         $pageritm = array();
                         $pageritm['page'] = sprintf(__("%d"), $pagenum);
-                        $pagerlink = sprintf(__("?s=%s&offset=%d&count=%d"), urlencode($qry), $offsetnum, $count);
-                        if($fqstr) $pagerlink .= '&fq=' . $fqstr;
-                        $pageritm['link'] = htmlspecialchars($pagerlink);
+                        $pageritm['link'] = htmlspecialchars(sprintf(__("?s=%s&offset=%d&count=%d"), urlencode($qry), $offsetnum, $count));
                         //if server is set add it on the end of the url
                         $selectedfacet['removelink'] .=$serverval;
                         $pagerout[] = $pageritm;
