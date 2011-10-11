@@ -91,7 +91,6 @@ wp_reset_vars(array('action'));
 # As it stands we have 27 options instead of making 27 insert calls (which is what update_options does)
 # Lets create an array of all our options and save it once.
 if ($_POST['action'] == 'update') {   
-print_r($_POST);
   //lets loop through our setting fields $_POST['settings']
   foreach ($s4w_settings as $option => $old_value ) {
     $value = $_POST['settings'][$option];
