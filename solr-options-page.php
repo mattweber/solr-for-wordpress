@@ -96,9 +96,8 @@ if ($_POST['action'] == 'update') {
     $value = $_POST['settings'][$option];
 
     switch ($option) {
-      case 's4w_index_all_sites':
       case 's4w_solr_initialized':
-        $value = trim($value);
+        $value = trim($old_value);
         break;
     case 's4w_server':
       //remove empty server entries
