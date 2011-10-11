@@ -27,6 +27,7 @@ $s4w_settings = s4w_get_option('plugin_s4w_settings');
 if ($s4w_settings['s4w_solr_initialized'] != 1) {
   
   $options['s4w_index_all_sites'] = 0;
+  $options['s4w_server']['info']['single']= array('host'=>'localhost','port'=>8983, 'path'=>'/solr');
   $options['s4w_server']['info']['master']= array('host'=>'localhost','port'=>8983, 'path'=>'/solr');
   $options['s4w_server']['type']['search'] = 'master';
   $options['s4w_server']['type']['update'] = 'master';
@@ -115,10 +116,18 @@ if ($_POST['action'] == 'update') {
     $value = stripslashes_deep($value);
     $s4w_settings[$option] = $value;
   }
-  //if we are in single server mode set the server types to master
+  // if we are in single server mode set the server types to master
+  // and configure the master server to the values of the single server
   if ($s4w_settings['s4w_connect_type'] =='solr_single'){
+    $s4w_settings['s4w_server']['info']['master']= $s4w_settings['s4w_server']['info']['single'];
     $s4w_settings['s4w_server']['type']['search'] = 'master';
     $s4w_settings['s4w_server']['type']['update'] = 'master';
+  }
+  // if this is a multi server setup we steal the master settings
+  // and stuff them into the single server settings in case the user
+  // decides to change it later 
+  else {
+    $s4w_settings['s4w_server']['info']['single']= $s4w_settings['s4w_server']['info']['master'];
   }
   //lets save our options array
   s4w_update_option($s4w_settings);
@@ -184,11 +193,11 @@ if ($_POST['s4w_ping']) {
 			<label><?php _e('Solr Host', 'solr4wp') ?></label>
 			<input name="settings[s4w_server][type][update]" type="hidden" value="master" />
 			<input name="settings[s4w_server][type][search]" type="hidden" value="master" />
-			<p><input type="text" name="settings[s4w_server][info][master][host]" value="<?php echo $s4w_settings['s4w_server']['info']['master']['host']?>" /></p>
+			<p><input type="text" name="settings[s4w_server][info][single][host]" value="<?php echo $s4w_settings['s4w_server']['info']['single']['host']?>" /></p>
 			<label><?php _e('Solr Port', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_server][info][master][port]" value="<?php echo $s4w_settings['s4w_server']['info']['master']['port']?>" /></p>
+			<p><input type="text" name="settings[s4w_server][info][single][port]" value="<?php echo $s4w_settings['s4w_server']['info']['single']['port']?>" /></p>
 			<label><?php _e('Solr Path', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_server][info][master][path]" value="<?php echo $s4w_settings['s4w_server']['info']['master']['path']?>" /></p>
+			<p><input type="text" name="settings[s4w_server][info][single][path]" value="<?php echo $s4w_settings['s4w_server']['info']['single']['path']?>" /></p>
 		</div>
 		<div class="solr_adminR2" id="solr_admin_tab3">
 		  <table>
@@ -200,6 +209,8 @@ if ($_POST['s4w_ping']) {
   		    $serv_count = count($s4w_settings['s4w_server']['info']);
   		    $s4w_settings['s4w_server']['info'][$serv_count] = array('host'=>'','port'=>'', 'path'=>'');
   		    foreach ($s4w_settings['s4w_server']['info'] as $server_id => $server) { 
+                      if ($server_id == "single")
+                        continue;
   		      //lets set serverIDs
   		      $new_id =(is_numeric($server_id)) ? 'slave_'.$server_id : $server_id ;
   		  ?>
