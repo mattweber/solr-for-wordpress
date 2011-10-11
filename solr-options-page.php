@@ -123,10 +123,10 @@ if ($_POST['action'] == 'update') {
   //lets save our options array
   s4w_update_option($s4w_settings);
 
- //we need to make call for the options again 
- //as we need them to come out in an a sanitised format
- //otherwise fields that need to run s4w_filter_list2str will come up with nothin
- $s4w_settings = s4w_get_option('plugin_s4w_settings');
+  //we need to make call for the options again 
+  //as we need them to come out in an a sanitised format
+  //otherwise fields that need to run s4w_filter_list2str will come up with nothin
+  $s4w_settings = s4w_get_option('plugin_s4w_settings');
 
   ?>
   <div id="message" class="updated fade"><p><strong><?php _e('Success!', 'solr4wp') ?></strong></p></div>
