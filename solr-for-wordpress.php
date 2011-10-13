@@ -434,11 +434,8 @@ function s4w_load_all_posts($prev) {
     $blog_id = $blog->blog_id;
     if ($plugin_s4w_settings['s4w_index_all_sites']) {
 
-        // this *will* require a lot of memory to get done, particularly
-        // for blogs with a lot of posts so we do a nasty hack
-        // and increase allowed memory here, hope your host can handle it :)
-        syslog(LOG_ERR,"starting batch import, setting memory limit to 3GB, setting max execution time to unlimited"); 
-        ini_set('memory_limit', '3072M');
+        // there is potential for this to run for an extended period of time, depending on the # of blgos
+        syslog(LOG_ERR,"starting batch import, setting max execution time to unlimited"); 
         set_time_limit(0);
 
         // get a list of blog ids
@@ -453,6 +450,10 @@ function s4w_load_all_posts($prev) {
 
             // attempt to save some memory by flushing wordpress's cache
             wp_cache_flush();
+
+            // everything just works better if we tell wordpress
+            // to switch to the blog we're using, this is a multi-site
+            // specific function
             switch_to_blog($blog_id);
 
             // now we actually gather the blog posts
@@ -476,6 +477,8 @@ function s4w_load_all_posts($prev) {
                     $end = TRUE;
                 }
                 
+                // using wpurl is better because it will return the proper
+                // URL for the blog whether it is a subdomain install or otherwise
                 $documents[] = s4w_build_document( get_blog_post($blog_id, $postid), substr(get_bloginfo('wpurl'),7), $current_site->path );
                 $cnt++;
                 if ($cnt == $batchsize) {
