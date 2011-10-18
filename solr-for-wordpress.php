@@ -87,6 +87,7 @@ function s4w_get_solr($server_id = NULL) {
   $path = $plugin_s4w_settings['s4w_server']['info'][$server_id]['path'];
   # double check everything has been set
   if ( ! ($host and $port and $path) ) {
+    syslog(LOG_ERR,"host, port or path are empty, host:$host, port:$port, path:$path");
     return NULL;
   }
 
@@ -249,6 +250,9 @@ function s4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
             if ($optimize) {
                 $solr->optimize();
             }
+        }
+        else {
+          syslog(LOG_ERR, "failed to get a solr instance created");
         }
     } catch ( Exception $e ) {
         syslog(LOG_INFO,"ERROR: " . $e->getMessage());
@@ -436,10 +440,11 @@ function s4w_load_all_posts($prev) {
 
         // there is potential for this to run for an extended period of time, depending on the # of blgos
         syslog(LOG_ERR,"starting batch import, setting max execution time to unlimited"); 
+        ini_set('memory_limit', '1024M');
         set_time_limit(0);
 
         // get a list of blog ids
-        $bloglist = $wpdb->get_col("SELECT * FROM {$wpdb->base_prefix}blogs", 0);
+        $bloglist = $wpdb->get_col("SELECT * FROM {$wpdb->base_prefix}blogs WHERE spam = 0 AND deleted = 0", 0);
         syslog(LOG_INFO,"pushing posts from " . count($bloglist) . " blogs into Solr");
         foreach ($bloglist as $bloginfo) {
 
@@ -491,10 +496,12 @@ function s4w_load_all_posts($prev) {
             }
             // post the documents to Solr
             // and reset the batch counters
+            s4w_post( $documents, false, false);
             s4w_post(false, true, false);
             $cnt = 0;
             $documents = array();
             syslog(LOG_INFO,"finished building $postcount documents for " . substr(get_bloginfo('wpurl'),7));
+            wp_cache_flush();
         }
 
         // done importing so lets switch back to the proper blog id
@@ -1433,8 +1440,8 @@ function s4w_copy_config_to_all_blogs() {
 
   $plugin_s4w_settings = s4w_get_option();
   foreach($blogs as $blog) {
-    wp_cache_flush();
     switch_to_blog($blog->blog_id);
+    wp_cache_flush();
     syslog(LOG_INFO,"pushing config to {$blog->blog_id}");
     s4w_update_option($plugin_s4w_settings);
   }
