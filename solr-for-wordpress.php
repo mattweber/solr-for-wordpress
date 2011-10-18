@@ -1214,6 +1214,7 @@ function s4w_admin_head() {
     function disableAll() {
         $j('[name=s4w_postload]').attr('disabled','disabled');
         $j('[name=s4w_deleteall]').attr('disabled','disabled');
+        $j('[name=s4w_init_blogs]').attr('disabled','disabled');
         $j('[name=s4w_optimize]').attr('disabled','disabled');
         $j('[name=s4w_pageload]').attr('disabled','disabled');
         $j('[name=s4w_ping]').attr('disabled','disabled');
@@ -1223,6 +1224,7 @@ function s4w_admin_head() {
     function enableAll() {
         $j('[name=s4w_postload]').removeAttr('disabled');
         $j('[name=s4w_deleteall]').removeAttr('disabled');
+        $j('[name=s4w_init_blogs]').removeAttr('disabled');
         $j('[name=s4w_optimize]').removeAttr('disabled');
         $j('[name=s4w_pageload]').removeAttr('disabled');
         $j('[name=s4w_ping]').removeAttr('disabled');
