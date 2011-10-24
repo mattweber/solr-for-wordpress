@@ -333,6 +333,8 @@ function s4w_handle_modified( $post_id ) {
     $index_pages = $plugin_s4w_settings['s4w_index_pages'];
     $index_posts = $plugin_s4w_settings['s4w_index_posts'];
     
+	s4w_handle_status_change( $post_id, $post_info );
+
     if (($index_pages && $post_info->post_type == 'page') || ($index_posts && $post_info->post_type == 'post')) {
         
         # make sure this blog is not private or a spam if indexing on a multisite install
@@ -349,24 +351,36 @@ function s4w_handle_modified( $post_id ) {
     }
 }
 
-function s4w_handle_status_change( $post_id ) {
+function s4w_handle_status_change( $post_id, $post_info = null ) {
     global $current_blog;
-    $post_info = get_post( $post_id );
+	
+	if ( ! $post_info ){
+    	$post_info = get_post( $post_id );
+	}
+	
     $plugin_s4w_settings = s4w_get_option();
     $private_page = $plugin_s4w_settings['s4w_private_page'];
     $private_post = $plugin_s4w_settings['s4w_private_post'];
     
     if ( ($private_page && $post_info->post_type == 'page') || ($private_post && $post_info->post_type == 'post') ) {
-        if ( ($_POST['prev_status'] == 'publish' || $_POST['original_post_status'] == 'publish') && 
-                ($post_info->post_status == 'draft' || $post_info->post_status == 'private') ) {
-                    if (is_multisite()) {
-                        s4w_delete( $current_blog->domain . $current_blog->path . $post_info->ID );
-                    } else {
-                        s4w_delete( $post_info->ID );
-                    }
+	 	/**
+		 * We need to check if the status of the post has changed.
+	     * Inline edits won't have the prev_status of original_post_status,
+	     * instead we check of the _inline_edit variable is present in the $_POST variable
+	    */
+	    if ( ($_POST['prev_status'] == 'publish' || $_POST['original_post_status'] == 'publish' || 
+				( isset( $_POST['_inline_edit'] ) && !empty( $_POST['_inline_edit']) ) )  && 
+				($post_info->post_status == 'draft' || $post_info->post_status == 'private') ) {
+	
+			if (is_multisite()) {
+                s4w_delete( $current_blog->domain . $current_blog->path . $post_info->ID );
+          	} else {
+         		s4w_delete( $post_info->ID );
+          	}
         }
     }
 }
+
 
 function s4w_handle_delete( $post_id ) {
     global $current_blog;
@@ -1389,7 +1403,7 @@ function s4w_autocomplete($q, $limit) {
 add_action( 'template_redirect', 's4w_template_redirect', 1 );
 add_action( 'publish_post', 's4w_handle_modified' );
 add_action( 'publish_page', 's4w_handle_modified' );
-add_action( 'edit_post', 's4w_handle_status_change' );
+add_action( 'save_post', 's4w_handle_modified' );
 add_action( 'delete_post', 's4w_handle_delete' );
 add_action( 'admin_menu', 's4w_add_pages');
 add_action( 'admin_init', 's4w_options_init');
