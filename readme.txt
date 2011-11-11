@@ -68,11 +68,11 @@ http://powcloud.com/
 
 = Can I run a local instance of Solr for testing? =
 
-Yes, you may grab a copy from the apache website: http://www.apache.org/dist/lucene/solr/1.4.1/
+Yes, you may grab a copy from the apache website: http://www.apache.org/dist/lucene/solr/
 Since it runs on java solr is platform independent, just make sure you have java install So go ahead and Download the .tgz/.zip file (there is no difference).
 1) Extract the files you have downloaded
-2) Copy the schema file (schema.xml) from this plugin to the folder you extracted 'apache-solr-1.4.1/examples/solr/conf/' (yes overwrite the file there)
-3) Open up terminal and then go to where you extracted the files and inside './apache-solr-1.4.1/examples' run the command "java -jar start.jar"
+2) Copy the schema file (schema.xml) from this plugin to the folder you extracted 'apache-solr-*/examples/solr/conf/' (yes overwrite the file there)
+3) Open up terminal and then go to where you extracted the files and inside './apache-solr-*/examples' run the command "java -jar start.jar"
 
 For any further information please the README that comes with solr.
 
@@ -142,3 +142,5 @@ Login to the WordPress admin, select pages, click the page you want to exclude. 
 
 Dominique Bejean for custom field support and testing.
 Eric Pugh multi server support.
+Dustin Rue - fixes for batch import and multisite.
+
