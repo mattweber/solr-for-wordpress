@@ -87,6 +87,7 @@ function s4w_get_solr($server_id = NULL) {
   $path = $plugin_s4w_settings['s4w_server']['info'][$server_id]['path'];
   # double check everything has been set
   if ( ! ($host and $port and $path) ) {
+    syslog(LOG_ERR,"host, port or path are empty, host:$host, port:$port, path:$path");
     return NULL;
   }
 
@@ -114,7 +115,6 @@ function s4w_ping_server($server_id = NULL) {
 }
 
 function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
-    global $current_site, $current_blog;
     $doc = NULL;
     $plugin_s4w_settings = s4w_get_option();
     $exclude_ids = $plugin_s4w_settings['s4w_exclude_pages'];
@@ -125,7 +125,7 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
     if ($post_info) {
         
         # check if we need to exclude this document
-        if (is_multisite() && in_array($current_blog->domain . $current_blog->path . $post_info->ID, $exclude_ids)) {
+        if (is_multisite() && in_array(substr(site_url(),7) . $post_info->ID, (array)$exclude_ids)) {
             return NULL;
         } else if ( !is_multisite() && in_array($post_info->ID, (array)$exclude_ids) ) {
             return NULL;
@@ -136,12 +136,15 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         
         # wpmu specific info
         if (is_multisite()) {
+            // if we get here we expect that we've "switched" what blog we're running
+            // as
             
             if ($domain == NULL)
                 $domain = $current_blog->domain;
             
             if ($path == NULL)
                 $path = $current_blog->path;
+            
             
             $blogid = get_blog_id_from_url($domain, $path);
             $doc->setField( 'id', $domain . $path . $post_info->ID );
@@ -220,7 +223,6 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
     } else {
         _e('Post Information is NULL', 'solr4wp');
     }
-    
     return $doc;
 }
 
@@ -236,10 +238,12 @@ function s4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
         if ( ! $solr == NULL ) {
             
             if ($documents) {
+                syslog(LOG_INFO,"posting " . count($documents) . " documents for blog:" . get_bloginfo('wpurl'));
                 $solr->addDocuments( $documents );
             }
             
             if ($commit) {
+               syslog(LOG_INFO,"telling Solr to commit");
                 $solr->commit();
             }
             
@@ -247,7 +251,11 @@ function s4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
                 $solr->optimize();
             }
         }
+        else {
+          syslog(LOG_ERR, "failed to get a solr instance created");
+        }
     } catch ( Exception $e ) {
+        syslog(LOG_INFO,"ERROR: " . $e->getMessage());
         echo $e->getMessage();
     }
 }
@@ -417,21 +425,46 @@ function s4w_handle_new_blog($blogid) {
 }
 
 function s4w_load_all_posts($prev) {
-    global $wpdb;
+    global $wpdb, $current_blog, $current_site;
     $documents = array();
     $cnt = 0;
-    $batchsize = 100;
+    $batchsize = 1000;
     $last = "";
     $found = FALSE;
     $end = FALSE;
     $percent = 0;
     //multisite logic is decided s4w_get_option
     $plugin_s4w_settings = s4w_get_option();
+    $blog_id = $blog->blog_id;
     if ($plugin_s4w_settings['s4w_index_all_sites']) {
-        $bloglist = $wpdb->get_col("SELECT * FROM {$wpdb->base_prefix}blogs", 0);
+
+        // there is potential for this to run for an extended period of time, depending on the # of blgos
+        syslog(LOG_ERR,"starting batch import, setting max execution time to unlimited"); 
+        ini_set('memory_limit', '1024M');
+        set_time_limit(0);
+
+        // get a list of blog ids
+        $bloglist = $wpdb->get_col("SELECT * FROM {$wpdb->base_prefix}blogs WHERE spam = 0 AND deleted = 0", 0);
+        syslog(LOG_INFO,"pushing posts from " . count($bloglist) . " blogs into Solr");
         foreach ($bloglist as $bloginfo) {
-            $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo->blog_id}_posts WHERE post_status = 'publish' AND post_type = 'post' ORDER BY ID;");
+
+            // for each blog we need to import we get their id 
+            // and tell wordpress to switch to that blog
+            $blog_id = trim($bloginfo);
+            syslog(LOG_INFO,"switching to blogid $blog_id");
+
+            // attempt to save some memory by flushing wordpress's cache
+            wp_cache_flush();
+
+            // everything just works better if we tell wordpress
+            // to switch to the blog we're using, this is a multi-site
+            // specific function
+            switch_to_blog($blog_id);
+
+            // now we actually gather the blog posts
+            $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo}_posts WHERE post_status = 'publish' AND post_type = 'post' ORDER BY ID;");
             $postcount = count($postids);
+            syslog(LOG_INFO,"building $postcount documents for " . substr(get_bloginfo('wpurl'),7));
             for ($idx = 0; $idx < $postcount; $idx++) {
                 
                 $postid = $postids[$idx]->ID;
@@ -449,16 +482,30 @@ function s4w_load_all_posts($prev) {
                     $end = TRUE;
                 }
                 
-                $documents[] = s4w_build_document( get_blog_post($bloginfo->blog_id, $postid), $bloginfo->domain, $bloginfo->path );
+                // using wpurl is better because it will return the proper
+                // URL for the blog whether it is a subdomain install or otherwise
+                $documents[] = s4w_build_document( get_blog_post($blog_id, $postid), substr(get_bloginfo('wpurl'),7), $current_site->path );
                 $cnt++;
                 if ($cnt == $batchsize) {
-                    s4w_post( $documents, FALSE, FALSE);
+                    s4w_post( $documents, false, false);
+                    s4w_post(false, true, false);
+                    wp_cache_flush();
                     $cnt = 0;
                     $documents = array();
-                    break;
                 }
             }
+            // post the documents to Solr
+            // and reset the batch counters
+            s4w_post( $documents, false, false);
+            s4w_post(false, true, false);
+            $cnt = 0;
+            $documents = array();
+            syslog(LOG_INFO,"finished building $postcount documents for " . substr(get_bloginfo('wpurl'),7));
+            wp_cache_flush();
         }
+
+        // done importing so lets switch back to the proper blog id
+       restore_current_blog();
     } else {
         $posts = $wpdb->get_results("SELECT ID FROM $wpdb->posts WHERE post_status = 'publish' AND post_type = 'post' ORDER BY ID;" );
         $postcount = count($posts);
@@ -1169,6 +1216,7 @@ function s4w_admin_head() {
     function disableAll() {
         $j('[name=s4w_postload]').attr('disabled','disabled');
         $j('[name=s4w_deleteall]').attr('disabled','disabled');
+        $j('[name=s4w_init_blogs]').attr('disabled','disabled');
         $j('[name=s4w_optimize]').attr('disabled','disabled');
         $j('[name=s4w_pageload]').attr('disabled','disabled');
         $j('[name=s4w_ping]').attr('disabled','disabled');
@@ -1178,6 +1226,7 @@ function s4w_admin_head() {
     function enableAll() {
         $j('[name=s4w_postload]').removeAttr('disabled');
         $j('[name=s4w_deleteall]').removeAttr('disabled');
+        $j('[name=s4w_init_blogs]').removeAttr('disabled');
         $j('[name=s4w_optimize]').removeAttr('disabled');
         $j('[name=s4w_pageload]').removeAttr('disabled');
         $j('[name=s4w_ping]').removeAttr('disabled');
@@ -1384,6 +1433,25 @@ function s4w_autocomplete($q, $limit) {
     foreach($terms as $term => $count) {
         printf("%s\n", $term);
     }
+}
+
+// copies config settings from the main blog
+// to all of the other blogs
+function s4w_copy_config_to_all_blogs() {
+  global $wpdb;
+
+  $blogs = $wpdb->get_results("SELECT blog_id FROM $wpdb->blogs WHERE spam = 0 AND deleted = 0");
+
+  $plugin_s4w_settings = s4w_get_option();
+  foreach($blogs as $blog) {
+    switch_to_blog($blog->blog_id);
+    wp_cache_flush();
+    syslog(LOG_INFO,"pushing config to {$blog->blog_id}");
+    s4w_update_option($plugin_s4w_settings);
+  }
+
+  wp_cache_flush();
+  restore_current_blog();
 }
 
 add_action( 'template_redirect', 's4w_template_redirect', 1 );

@@ -176,7 +176,10 @@ if ($_POST['s4w_ping']) {
 ?>
     <div id="message" class="updated fade"><p><strong><?php _e('Index Optimized!', 'solr4wp') ?></strong></p></div>
 <?php
-}
+} else if ($_POST['s4w_init_blogs']) {
+    s4w_copy_config_to_all_blogs();
+  }  ?>
+        <div id="message" class="updated fade"><p><strong><?php _e('Solr for Wordpress Configured for All Blogs!', 'solr4wp') ?></strong></p></div>
 ?>
 
 <div class="wrap">
@@ -370,6 +373,14 @@ if ($_POST['s4w_ping']) {
         <th scope="row"><?php _e('Check Server Settings', 'solr4wp') ?></th>
         <td><input type="submit" class="button-primary" name="s4w_ping" value="<?php _e('Execute', 'solr4wp') ?>" /></td>
     </tr>
+
+    <?php if(is_multisite()) { ?>
+    <tr valign="top">
+        <th scope="row"><?php _e('Push Solr Configuration to All Blogs', 'solr4wp') ?></th>
+        <td><input type="submit" class="button-primary" name="s4w_init_blogs" value="<?php _e('Execute', 'solr4wp') ?>" /></td>
+    </tr>
+    <?php } ?>
+    
  
     <tr valign="top">
         <th scope="row"><?php _e('Load All Pages', 'solr4wp') ?></th>
