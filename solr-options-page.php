@@ -239,7 +239,7 @@ if ($_POST['s4w_ping']) {
 		<li id="solr_admin_tab2_btn" class="solr_admin_tab2">
 			<h4><input id="solrconnect_single" name="settings[s4w_connect_type]" type="radio" value="solr_single" <?php s4w_checkConnectOption($s4w_settings['s4w_connect_type'], 'solr_single'); ?> onclick="switch1();" />Single Solr Server</h4>
 			<ol>
-				<li>Download, install and configure your own <a href="">Apache Solr 1.4</a> instance</li>
+				<li>Download, install and configure your own <a href="http://lucene.apache.org/solr/">Apache Solr</a> instance</li>
 			</ol>
 		</li>
 		<li id="solr_admin_tab3_btn" class="solr_admin_tab3">
