@@ -221,6 +221,7 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         	}
         }
     } else {
+        // this will fire during blog sign up on multisite, not sure why
         _e('Post Information is NULL', 'solr4wp');
     }
     return $doc;
@@ -397,6 +398,7 @@ function s4w_handle_deactivate_blog($blogid) {
 }
 
 function s4w_handle_activate_blog($blogid) {
+    s4w_apply_config_to_blog($blogid);
     s4w_load_blog_all($blogid);
 }
 
@@ -405,6 +407,7 @@ function s4w_handle_archive_blog($blogid) {
 }
 
 function s4w_handle_unarchive_blog($blogid) {
+    s4w_apply_config_to_blog($blogid);
     s4w_load_blog_all($blogid);
 }
 
@@ -413,6 +416,7 @@ function s4w_handle_spam_blog($blogid) {
 }
 
 function s4w_handle_unspam_blog($blogid) {
+    s4w_apply_config_to_blog($blogid);
     s4w_load_blog_all($blogid);
 }
 
@@ -421,6 +425,7 @@ function s4w_handle_delete_blog($blogid) {
 }
 
 function s4w_handle_new_blog($blogid) {
+    s4w_apply_config_to_blog($blogid);
     s4w_load_blog_all($blogid);
 }
 
@@ -1452,6 +1457,20 @@ function s4w_copy_config_to_all_blogs() {
 
   wp_cache_flush();
   restore_current_blog();
+}
+
+function s4w_apply_config_to_blog($blogid) {
+  syslog(LOG_ERR,"applying config to blog with id $blogid");
+  if (!is_multisite())
+    return;
+
+  wp_cache_flush();
+  $plugin_s4w_settings = s4w_get_option();
+  switch_to_blog($blogid);
+  wp_cache_flush();
+  s4w_update_option($plugin_s4w_settings);
+  restore_current_blog();
+  wp_cache_flush();
 }
 
 add_action( 'template_redirect', 's4w_template_redirect', 1 );
