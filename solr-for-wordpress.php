@@ -1260,14 +1260,14 @@ function s4w_admin_head() {
             $j(this).after($percentspan);
             disableAll();
             doLoad("post", null);
-            return FALSE;
+            return false;
         });
         
         $j('[name=s4w_pageload]').click(function() {
             $j(this).after($percentspan);
             disableAll();
             doLoad("page", null);
-            return FALSE;
+            return false;
         });
     });
     
