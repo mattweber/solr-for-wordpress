@@ -929,6 +929,8 @@ function s4w_print_facet_items($items, $pre = "<ul>", $post = "</ul>", $before =
     printf(__("%s\n"), $pre);
     foreach ($items as $item) {
         printf(__("%s<a href=\"%s\">%s (%s)</a>%s\n"), $before, $item["link"], $item["name"], $item["count"], $after);
+        $item_items = isset($item["items"]) ? true : false;
+        
         if ($item["items"]) {
             s4w_print_facet_items($item["items"], $nestedpre, $nestedpost, $nestedbefore, $nestedafter, 
                                                   $nestedpre, $nestedpost, $nestedbefore, $nestedafter);
@@ -1260,14 +1262,14 @@ function s4w_admin_head() {
             $j(this).after($percentspan);
             disableAll();
             doLoad("post", null);
-            return false;
+            $j(this).preventDefault();
         });
         
         $j('[name=s4w_pageload]').click(function() {
             $j(this).after($percentspan);
             disableAll();
             doLoad("page", null);
-            return false;
+            $j(this).preventDefault();
         });
     });
     
