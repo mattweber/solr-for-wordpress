@@ -931,7 +931,7 @@ function s4w_print_facet_items($items, $pre = "<ul>", $post = "</ul>", $before =
         printf(__("%s<a href=\"%s\">%s (%s)</a>%s\n"), $before, $item["link"], $item["name"], $item["count"], $after);
         $item_items = isset($item["items"]) ? true : false;
         
-        if ($item["items"]) {
+        if ($item_items) {
             s4w_print_facet_items($item["items"], $nestedpre, $nestedpost, $nestedbefore, $nestedafter, 
                                                   $nestedpre, $nestedpost, $nestedbefore, $nestedafter);
         }
