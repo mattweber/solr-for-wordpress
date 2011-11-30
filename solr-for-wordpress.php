@@ -257,7 +257,7 @@ function s4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
         }
     } catch ( Exception $e ) {
         syslog(LOG_INFO,"ERROR: " . $e->getMessage());
-        echo $e->getMessage();
+        //echo $e->getMessage();
     }
 }
 
@@ -268,7 +268,7 @@ function s4w_optimize() {
             $solr->optimize();
         }
     } catch ( Exception $e ) {
-        echo $e->getMessage();
+        syslog(LOG_ERR,$e->getMessage());
     }
 }
 
@@ -280,7 +280,7 @@ function s4w_delete( $doc_id ) {
             $solr->commit();
         }
     } catch ( Exception $e ) {
-        echo $e->getMessage();
+        syslog(LOG_ERR,$e->getMessage());
     }
 }
 
@@ -1059,10 +1059,16 @@ function s4w_master_query($solr, $qry, $offset, $count, $fq, $sortby, &$plugin_s
         if ($facet_on_tags) {
             $params['f.tags.facet.limit'] = $number_of_tags;
         }
-        
-        $response = $solr->search($qry, $offset, $count, $params);
-        if ( ! $response->getHttpStatus() == 200 ) { 
-            $response = NULL; 
+
+        try { 
+            $response = $solr->search($qry, $offset, $count, $params);
+            if ( ! $response->getHttpStatus() == 200 ) { 
+                $response = NULL; 
+            }
+        }
+        catch(Exception $e) {
+            syslog(LOG_ERR, "failed to query solr for " . print_r($qry, true) . print_r($params,true));
+            $response = NULL;
         }
     }
     
