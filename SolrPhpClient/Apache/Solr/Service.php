@@ -767,7 +767,7 @@ class Apache_Solr_Service
 						// only set the boost for the first field in the set
 						$fieldBoost = false;
 					}
-
+					$multivalue = utf8_encode($multivalue);
 					$multivalue = htmlspecialchars($multivalue, ENT_NOQUOTES, 'UTF-8');
 
 					$xml .= '>' . $multivalue . '</field>';
