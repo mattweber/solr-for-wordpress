@@ -315,7 +315,7 @@ function s4w_load_blog_all($blogid) {
     $batchsize = 10;
     
     $bloginfo = get_blog_details($blogid, FALSE);
-    
+   
     if ($bloginfo->public && !$bloginfo->archived && !$bloginfo->spam && !$bloginfo->deleted) {
         $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$blogid}_posts WHERE post_status = 'publish';");
         for ($idx = 0; $idx < count($postids); $idx++) {
@@ -447,7 +447,7 @@ function s4w_load_all_posts($prev) {
     global $wpdb, $current_blog, $current_site;
     $documents = array();
     $cnt = 0;
-    $batchsize = 1000;
+    $batchsize = 250;
     $last = "";
     $found = FALSE;
     $end = FALSE;
@@ -536,20 +536,19 @@ function s4w_load_all_posts($prev) {
                 if ($postid === $prev) {
                     $found = TRUE;
                 }
-                
                 continue;
             }
             
             if ($idx === $postcount - 1) {
                 $end = TRUE;
             }
-            
             $documents[] = s4w_build_document( get_post($postid) );
             $cnt++;
             if ($cnt == $batchsize) {
                 s4w_post( $documents, FALSE, FALSE);
                 $cnt = 0;
                 $documents = array();
+                wp_cache_flush();
                 break;
             }
         }
