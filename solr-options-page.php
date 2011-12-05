@@ -180,7 +180,7 @@ if ($_POST['s4w_ping']) {
     s4w_copy_config_to_all_blogs();
   }  ?>
         <div id="message" class="updated fade"><p><strong><?php _e('Solr for Wordpress Configured for All Blogs!', 'solr4wp') ?></strong></p></div>
-?>
+
 
 <div class="wrap">
 <h2><?php _e('Solr For WordPress', 'solr4wp') ?></h2>
