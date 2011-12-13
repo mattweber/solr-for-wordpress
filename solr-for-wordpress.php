@@ -1494,6 +1494,23 @@ function s4w_apply_config_to_blog($blogid) {
   wp_cache_flush();
 }
 
+/**
+ * Retrieve a list of post types that exists
+ * @return array
+ */
+function s4w_get_all_post_types() {
+  global $wpdb;
+  //remove the defualt attachment/revision and menu from the returned types.
+  $query = $wpdb->get_results("SELECT DISTINCT(post_type) FROM $wpdb->posts WHERE post_type NOT IN('attachment', 'revision', 'nav_menu_item') ORDER BY post_type");
+  if ($query) {
+    $types = array();
+    foreach ( $query as $type ) {
+      $types[] = $type->post_type;
+    }       
+    return $types;
+  }
+}
+
 add_action( 'template_redirect', 's4w_template_redirect', 1 );
 add_action( 'publish_post', 's4w_handle_modified' );
 add_action( 'publish_page', 's4w_handle_modified' );

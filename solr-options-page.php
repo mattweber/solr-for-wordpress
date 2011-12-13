@@ -1,4 +1,6 @@
 <?php
+
+krumo (s4w_load_all_posts("", "all"));
 /*  
     Copyright (c) 2009 Matt Weber
 
@@ -23,6 +25,10 @@
 
 //get the plugin settings
 $s4w_settings = s4w_get_option('plugin_s4w_settings');
+
+//get a a list of all the available content types so we render out some options
+$post_types = s4w_get_all_post_types();
+
 #set defaults if not initialized
 if ($s4w_settings['s4w_solr_initialized'] != 1) {
   
@@ -31,6 +37,12 @@ if ($s4w_settings['s4w_solr_initialized'] != 1) {
   $options['s4w_server']['info']['master']= array('host'=>'localhost','port'=>8983, 'path'=>'/solr');
   $options['s4w_server']['type']['search'] = 'master';
   $options['s4w_server']['type']['update'] = 'master';
+  
+  //by default we index pages and posts, and remove them from index if there status changes.
+  $options['s4w_content']['index']   = array('page'=>'1', 'post'=>'1');  
+  $options['s4w_content']['delete']  = array('page'=>'1', 'post'=>'1');  
+  $options['s4w_content']['private'] = array('page'=>'1', 'post'=>'1');    
+  
   
   $options['s4w_index_pages'] = 1;
   $options['s4w_index_posts'] = 1;
@@ -58,7 +70,8 @@ if ($s4w_settings['s4w_solr_initialized'] != 1) {
   $options['s4w_index_custom_fields'] =  array();
   $options['s4w_facet_on_custom_fields'] =  array();
   $options['s4w_index_custom_fields'] = '';  
-  $options['s4w_facet_on_custom_fields'] = '';  
+  $options['s4w_facet_on_custom_fields'] = '';
+
   
   //update existing settings from multiple option record to a single array
   //if old options exist, update to new system
@@ -99,16 +112,17 @@ if ($_POST['action'] == 'update') {
       case 's4w_solr_initialized':
         $value = trim($old_value);
         break;
-    case 's4w_server':
-      //remove empty server entries
-      $s_value = &$value['info'];
       
-      foreach ($s_value as $key => $v) {
-        //lets rename the array_keys
-        if(!$v['host']) unset($s_value[$key]);
-      }
-      break;
-
+      case 's4w_server':
+        //remove empty server entries
+        $s_value = &$value['info'];
+      
+      
+        foreach ($s_value as $key => $v) {
+          //lets rename the array_keys
+          if(!$v['host']) unset($s_value[$key]);
+        }
+        break;
     }
     if ( !is_array($value) ) $value = trim($value); 
     $value = stripslashes_deep($value);
@@ -134,15 +148,15 @@ if ($_POST['action'] == 'update') {
   //as we need them to come out in an a sanitised format
   //otherwise fields that need to run s4w_filter_list2str will come up with nothin
   $s4w_settings = s4w_get_option('plugin_s4w_settings');
-
   ?>
   <div id="message" class="updated fade"><p><strong><?php _e('Success!', 'solr4wp') ?></strong></p></div>
   <?php
 }
 
 # checks if we need to check the checkbox
-function s4w_checkCheckbox( $fieldValue ) {
-  if( $fieldValue == '1'){
+function s4w_checkCheckbox( $fieldValue, $option = array(), $field = false) {
+  $option_value = (is_array($option) && $field)? $option[$field] : $option;
+  if( $fieldValue == '1' || $option_value == '1'){
     echo 'checked="checked"';
   }
 }
@@ -253,26 +267,19 @@ if ($_POST['s4w_ping']) {
 <hr />
 <h3><?php _e('Indexing Options', 'solr4wp') ?></h3>
 <table class="form-table">
+  <?php 
+  foreach ($post_types as $post_key => $post_type) {?>
     <tr valign="top">
-        <th scope="row" style="width:200px;"><?php _e('Index Pages', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_index_pages]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_index_pages']); ?> /></td>
-        <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Index Posts', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_index_posts]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_index_posts']); ?> /></td>
-    </tr>
+        <th scope="row" style="width:200px;"><?php _e('Index '.ucfirst($post_type), 'solr4wp') ?></th>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_content][index][<?php echo $post_type?>]" value="1" <?php echo s4w_checkCheckbox(FALSE, $s4w_settings['s4w_content']['index'], $post_type); ?> /></td>
 
-    <tr valign="top">
-        <th scope="row" style="width:200px;"><?php _e('Remove Page on Delete', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_delete_page]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_delete_page']); ?> /></td>
-        <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Remove Post on Delete', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_delete_post]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_delete_post']); ?> /></td>
+        <th scope="row" style="width:200px;"><?php _e('Remove '.ucfirst($post_type).' on Delete', 'solr4wp') ?></th>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_content][delete][<?php echo $post_type?>]" value="1" <?php echo s4w_checkCheckbox(FALSE, $s4w_settings['s4w_content']['delete'], $post_type); ?> /></td>
+
+        <th scope="row" style="width:200px;"><?php _e('Remove '.ucfirst($post_type).' on Status Change', 'solr4wp') ?></th>
+        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_content][private][<?php echo $post_type?>]" value="1" <?php echo s4w_checkCheckbox(FALSE, $s4w_settings['s4w_content']['private'], $post_type); ?> /></td>
     </tr>
-    
-    <tr valign="top">
-        <th scope="row" style="width:200px;"><?php _e('Remove Page on Status Change', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_private_page]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_private_page']); ?> /></td>
-        <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Remove Post on Status Change', 'solr4wp') ?></th>
-        <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_private_post]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_private_post']); ?> /></td>
-    </tr>
+  <?php }?>
 
     <tr valign="top">
         <th scope="row" style="width:200px;"><?php _e('Index Comments', 'solr4wp') ?></th>
@@ -381,16 +388,25 @@ if ($_POST['s4w_ping']) {
     </tr>
     <?php } ?>
     
- 
-    <tr valign="top">
-        <th scope="row"><?php _e('Load All Pages', 'solr4wp') ?></th>
-        <td><input type="submit" class="button-primary" name="s4w_pageload" value="<?php _e('Execute', 'solr4wp') ?>" /></td>
-    </tr>
+    <?php foreach ($post_types as $post_key => $post_type) {
+            if ($s4w_settings['s4w_content']['index'][$post_type]==1) {
+    ?>
 
-    <tr valign="top">
-        <th scope="row"><?php _e('Load All Posts', 'solr4wp') ?></th>
-        <td><input type="submit" class="button-primary" name="s4w_postload" value="<?php _e('Execute', 'solr4wp') ?>" /></td>
-    </tr>
+      <tr valign="top">
+          <th scope="row"><?php _e('Index all '.ucfirst($post_type), 'solr4wp') ?></th>
+          <td><input type="submit" class="button-primary content_load" name="s4w_content_load[<?php echo $post_type?>]" value="<?php _e('Execute', 'solr4wp') ?>" /></td>
+      </tr>
+    <?php  
+      }
+    }
+
+    if (count($s4w_settings['s4w_content']['index'])>0) {
+    ?>
+      <tr valign="top">
+          <th scope="row"><?php _e('Index All Content', 'solr4wp') ?></th>
+          <td><input type="submit" class="button-primary content_load" name="s4w_content_load[all]" value="<?php _e('Execute', 'solr4wp') ?>" /></td>
+      </tr>
+    <?php }?>
     
     <tr valign="top">
         <th scope="row"><?php _e('Optimize Index', 'solr4wp') ?></th>
