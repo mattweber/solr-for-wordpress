@@ -443,7 +443,15 @@ function s4w_handle_new_blog($blogid) {
     s4w_load_blog_all($blogid);
 }
 
-function s4w_load_all_posts($prev) {
+/**
+ * This function indexes all the different content types.
+ * This does not include attachments and revisions
+ *
+ * @param $prev 
+ * @param $type what content to index: post type machine name or all content.
+ * @return string (json reply)
+ */
+function s4w_load_all_posts($prev, $type = 'all') {
     global $wpdb, $current_blog, $current_site;
     $documents = array();
     $cnt = 0;
@@ -452,9 +460,20 @@ function s4w_load_all_posts($prev) {
     $found = FALSE;
     $end = FALSE;
     $percent = 0;
+    
     //multisite logic is decided s4w_get_option
     $plugin_s4w_settings = s4w_get_option();
     $blog_id = $blog->blog_id;
+    
+    //retrieve the post types that can be indexed
+    $indexable_content = $plugin_s4w_settings['s4w_content']['index'];
+    $indexable_type = array_keys($indexable_content);
+    //if the provided $type is not allowed to be index, lets stop
+    if (!in_array($type,$indexable_type) && $type != 'all') { 
+      return false;
+    }
+    //lets setup our where clause to find the appropriate posts
+    $where_and = ($type == 'all') ?"AND post_type IN ('".implode("', '", $indexable_type). "')" : " AND post_type = '$type'";
     if ($plugin_s4w_settings['s4w_index_all_sites']) {
 
         // there is potential for this to run for an extended period of time, depending on the # of blgos
@@ -481,7 +500,8 @@ function s4w_load_all_posts($prev) {
             switch_to_blog($blog_id);
 
             // now we actually gather the blog posts
-            $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo}_posts WHERE post_status = 'publish' AND post_type = 'post' ORDER BY ID;");
+            
+            $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo}_posts WHERE post_status = 'publish' $where_and ORDER BY ID;");
             $postcount = count($postids);
             syslog(LOG_INFO,"building $postcount documents for " . substr(get_bloginfo('wpurl'),7));
             for ($idx = 0; $idx < $postcount; $idx++) {
@@ -526,7 +546,7 @@ function s4w_load_all_posts($prev) {
         // done importing so lets switch back to the proper blog id
        restore_current_blog();
     } else {
-        $posts = $wpdb->get_results("SELECT ID FROM $wpdb->posts WHERE post_status = 'publish' AND post_type = 'post' ORDER BY ID;" );
+        $posts = $wpdb->get_results("SELECT ID FROM $wpdb->posts WHERE post_status = 'publish' $where_and ORDER BY ID;" );
         $postcount = count($posts);
         for ($idx = 0; $idx < $postcount; $idx++) {
             $postid = $posts[$idx]->ID;
@@ -560,92 +580,9 @@ function s4w_load_all_posts($prev) {
     
     if ($end) {
         s4w_post(FALSE, TRUE, FALSE);
-        printf("{\"type\": \"post\", \"last\": \"%s\", \"end\": true, \"percent\": \"%.2f\"}", $last, $percent);
+        printf("{\"type\": \"%s\", \"last\": \"%s\", \"end\": true, \"percent\": \"%.2f\"}", $type, $last, $percent);
     } else {
-        printf("{\"type\": \"post\", \"last\": \"%s\", \"end\": false, \"percent\": \"%.2f\"}", $last, $percent);
-    }
-}
-
-function s4w_load_all_pages($prev) {
-    global $wpdb;
-    $documents = array();
-    $cnt = 0;
-    $batchsize = 100;
-    $last = "";
-    $found = FALSE;
-    $end = FALSE;
-    $percent = 0;
-    $plugin_s4w_settings = s4w_get_option();
-    if ($plugin_s4w_settings['s4w_index_all_sites']) {
-        $bloglist = $wpdb->get_col("SELECT * FROM {$wpdb->base_prefix}blogs", 0);
-        foreach ($bloglist as $bloginfo) {
-            $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo->blog_id}_posts WHERE post_status = 'publish' AND post_type = 'page' ORDER BY ID;");
-            $postcount = count($postids);
-            for ($idx = 0; $idx < $postcount; $idx++) {
-                $postid = $postids[$idx]->ID;
-                $last = $postid;
-                $percent = (floatval($idx) / floatval($postcount)) * 100;
-                if ($prev && !$found) {
-                    if ($postid === $prev) {
-                        $found = TRUE;
-                    }
-                    
-                    continue;
-                }
-                
-                if ($idx === $postcount - 1) {
-                    $end = TRUE;
-                }
-                
-                $documents[] = s4w_build_document( get_blog_post($bloginfo->blog_id, $postid), $bloginfo->domain, $bloginfo->path );
-                $cnt++;
-                if ($cnt == $batchsize) {
-                    s4w_post( $documents, FALSE, FALSE);
-                    $cnt = 0;
-                    $documents = array();
-                    break;
-                }
-            }
-        }        
-    } else {
-        $pages = $wpdb->get_results("SELECT ID FROM $wpdb->posts WHERE post_status = 'publish' AND post_type = 'page' ORDER BY ID;" );
-        $pagecount = count($pages);
-        for ($idx = 0; $idx < $pagecount; $idx++) {
-            $pageid = $pages[$idx]->ID;
-            $last = $pageid;
-            $percent = (floatval($idx) / floatval($pagecount)) * 100;
-            if ($prev && !$found) {
-                if ($pageid === $prev) {
-                    $found = TRUE;
-                }
-                
-                continue;
-            }
-            
-            if ($idx === $pagecount - 1) {
-                $end = TRUE;
-            }
-            
-            $documents[] = s4w_build_document( get_post($pageid) );
-            $cnt++;
-            if ($cnt == $batchsize) {
-                s4w_post( $documents, FALSE, FALSE);
-                $cnt = 0;
-                $documents = array();
-                break;
-            }
-        }
-    }
-    
-    if ($documents) {
-        s4w_post( $documents, FALSE, FALSE);
-    }
-    
-    if ($end) {
-        s4w_post(FALSE, TRUE, FALSE);
-        printf("{\"type\": \"page\", \"last\": \"%s\", \"end\": true, \"percent\": \"%.2f\"}", $last, $percent);
-    } else {
-        printf("{\"type\": \"page\", \"last\": \"%s\", \"end\": false, \"percent\": \"%.2f\"}", $last, $percent);
+        printf("{\"type\": \"%s\", \"last\": \"%s\", \"end\": false, \"percent\": \"%.2f\"}", $type, $last, $percent);
     }
 }
 
@@ -1081,13 +1018,10 @@ function s4w_options_init() {
         $type = $_POST['type'];
         $prev = $_POST['prev'];
         
-        if ($type === 'post' ) {
-            s4w_load_all_posts($prev);
+        if ($type) {
+            s4w_load_all_posts($prev, $type);
             exit;
-        } else if ($type === 'page') {
-            s4w_load_all_pages($prev);
-            exit;
-        } else {
+         } else {
             return;
         }
     }
@@ -1240,21 +1174,19 @@ function s4w_admin_head() {
     }
     
     function disableAll() {
-        $j('[name=s4w_postload]').attr('disabled','disabled');
+        $j("input[name^='s4w_content_load']").attr('disabled','disabled');
         $j('[name=s4w_deleteall]').attr('disabled','disabled');
         $j('[name=s4w_init_blogs]').attr('disabled','disabled');
         $j('[name=s4w_optimize]').attr('disabled','disabled');
-        $j('[name=s4w_pageload]').attr('disabled','disabled');
         $j('[name=s4w_ping]').attr('disabled','disabled');
         $j('#settingsbutton').attr('disabled','disabled');
     }
     
     function enableAll() {
-        $j('[name=s4w_postload]').removeAttr('disabled');
+        $j("input[name^='s4w_content_load']").removeAttr('disabled');
         $j('[name=s4w_deleteall]').removeAttr('disabled');
         $j('[name=s4w_init_blogs]').removeAttr('disabled');
         $j('[name=s4w_optimize]').removeAttr('disabled');
-        $j('[name=s4w_pageload]').removeAttr('disabled');
         $j('[name=s4w_ping]').removeAttr('disabled');
         $j('#settingsbutton').removeAttr('disabled');
     }
@@ -1262,21 +1194,17 @@ function s4w_admin_head() {
     $percentspan = '<span style="font-size:1.2em;font-weight:bold;margin:20px;padding:20px" id="percentspan">0%</span>';
     
     $j(document).ready(function() {
-        switch1();
-        $j('[name=s4w_postload]').click(function() {
-            $j(this).after($percentspan);
-            disableAll();
-            doLoad("post", null);
-            $j(this).preventDefault();
+       switch1();
+       $j("input[name^='s4w_content_load']").click(function(event){ 
+          event.preventDefault();
+          var regex = /\b[a-z]+\b/;
+          var match = regex.exec(this.name);
+          var post_type = match[0];
+          $j(this).after($percentspan);
+          disableAll();
+          doLoad(post_type, null);
         });
-        
-        $j('[name=s4w_pageload]').click(function() {
-            $j(this).after($percentspan);
-            disableAll();
-            doLoad("page", null);
-            $j(this).preventDefault();
-        });
-    });
+     });
     
 </script> <?php
 }
