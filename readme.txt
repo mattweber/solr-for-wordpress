@@ -6,7 +6,7 @@ Donate link: http://www.mattweber.org
 Tags: solr, search, search results, search integration, custom search 
 Requires at least: 3.0
 Tested up to: 3.2.1
-Stable tag: 0.4.1
+Stable tag: 0.5.0
 
 A WordPress plugin that replaces the default WordPress search with Solr.
 
