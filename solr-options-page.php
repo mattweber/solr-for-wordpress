@@ -1,6 +1,4 @@
 <?php
-
-krumo (s4w_load_all_posts("", "all"));
 /*  
     Copyright (c) 2009 Matt Weber
 
