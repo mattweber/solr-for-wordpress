@@ -146,33 +146,6 @@ Template Name: Search
 		</div>	
 	</div>
 
-	<div class="solr3">
-		<ul class="solr_facets">
-
-			<li class="solr_active">
-				<ol>
-					<?php if ($results['facets']['selected']) {
-					    foreach( $results['facets']['selected'] as $selectedfacet) {
-					        printf("<li><span></span><a href=\"%s\">%s<b>x</b></a></li>", $selectedfacet['removelink'], $selectedfacet['name']);
-					    }
-					} ?>
-				</ol>
-			</li>
-
-			<?php if ($results['facets'] && $results['hits'] != 1) {
-					foreach($results['facets'] as $facet) {
-					    if (sizeof($facet["items"]) > 1) { #don't display facets with only 1 value
-  							printf("<li>\n<h3>%s</h3>\n", $facet['name']);
-  							s4w_print_facet_items($facet["items"], "<ol>", "</ol>", "<li>", "</li>",
-  																					"<li><ol>", "</ol></li>", "<li>", "</li>");
-  							printf("</li>\n");
-              }
-					}
-			} ?>
-
-		</ul>
-	</div>
-
 </div>
 
 </div>
