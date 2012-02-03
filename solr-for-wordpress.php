@@ -173,6 +173,20 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
            
         $doc->setField( 'title', $post_info->post_title );
         $doc->setField( 'content', strip_tags($post_info->post_content) );
+
+        // rawcontent strips out characters lower than 0x20
+        $doc->setField( 'rawcontent', strip_tags(preg_replace('/[^(\x20-\x7F)\x0A]*/','', $post_info->post_content)));
+
+        // contentnoshortcodes also strips characters below 0x20 but also strips shortcodes
+        // used in WP to add images or other content, useful if you're pulling this data
+        // into another system
+        //
+        // For example
+        //   [caption id="attachment_92495" align="alignright" width="160" caption="Duane Sand"][/caption] FARGO - Republican U.S. Senate...
+        // 
+        // Will become
+        //   FARGO - Republican U.S. Senate...
+        $doc->setField( 'contentnoshortcodes', strip_tags(preg_replace('/[^(\x20-\x7F)\x0A]*/','', strip_tags(strip_shortcodes($post_info->post_content)))));
         $doc->setField( 'numcomments', $numcomments );
         $doc->setField( 'author', $auth_info->display_name );
         $doc->setField( 'author_s', get_author_posts_url($auth_info->ID, $auth_info->user_nicename));
@@ -181,7 +195,7 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         $doc->setField( 'modified', s4w_format_date($post_info->post_modified_gmt) );
         $doc->setField( 'displaydate', $post_info->post_date );
         $doc->setField( 'displaymodified', $post_info->post_modified );
-        
+
         $categories = get_the_category($post_info->ID);
         if ( ! $categories == NULL ) {
             foreach( $categories as $category ) {
@@ -243,12 +257,12 @@ function s4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
         if ( ! $solr == NULL ) {
             
             if ($documents) {
-                syslog(LOG_INFO,"posting " . count($documents) . " documents for blog:" . get_bloginfo('wpurl'));
+                syslog(LOG_ERR,"posting " . count($documents) . " documents for blog:" . get_bloginfo('wpurl'));
                 $solr->addDocuments( $documents );
             }
             
             if ($commit) {
-               syslog(LOG_INFO,"telling Solr to commit");
+               syslog(LOG_ERR,"telling Solr to commit");
                 $solr->commit();
             }
             
@@ -260,7 +274,7 @@ function s4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
           syslog(LOG_ERR, "failed to get a solr instance created");
         }
     } catch ( Exception $e ) {
-        syslog(LOG_INFO,"ERROR: " . $e->getMessage());
+        syslog(LOG_ERR,"ERROR: " . $e->getMessage());
         //echo $e->getMessage();
     }
 }
@@ -487,13 +501,14 @@ function s4w_load_all_posts($prev, $type = 'all') {
 
         // get a list of blog ids
         $bloglist = $wpdb->get_col("SELECT * FROM {$wpdb->base_prefix}blogs WHERE spam = 0 AND deleted = 0", 0);
-        syslog(LOG_INFO,"pushing posts from " . count($bloglist) . " blogs into Solr");
+        syslog(LOG_ERR,"pushing posts from " . count($bloglist) . " blogs into Solr");
         foreach ($bloglist as $bloginfo) {
 
             // for each blog we need to import we get their id 
             // and tell wordpress to switch to that blog
             $blog_id = trim($bloginfo);
-            syslog(LOG_INFO,"switching to blogid $blog_id");
+
+            syslog(LOG_ERR,"switching to blogid $blog_id");
 
             // attempt to save some memory by flushing wordpress's cache
             wp_cache_flush();
@@ -507,7 +522,7 @@ function s4w_load_all_posts($prev, $type = 'all') {
             
             $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo}_posts WHERE post_status = 'publish' $where_and ORDER BY ID;");
             $postcount = count($postids);
-            syslog(LOG_INFO,"building $postcount documents for " . substr(get_bloginfo('wpurl'),7));
+            syslog(LOG_ERR,"building $postcount documents for " . substr(get_bloginfo('wpurl'),7));
             for ($idx = 0; $idx < $postcount; $idx++) {
                 
                 $postid = $postids[$idx]->ID;
@@ -543,7 +558,7 @@ function s4w_load_all_posts($prev, $type = 'all') {
             s4w_post(false, true, false);
             $cnt = 0;
             $documents = array();
-            syslog(LOG_INFO,"finished building $postcount documents for " . substr(get_bloginfo('wpurl'),7));
+            syslog(LOG_ERR,"finished building $postcount documents for " . substr(get_bloginfo('wpurl'),7));
             wp_cache_flush();
         }
 
@@ -1404,7 +1419,7 @@ function s4w_copy_config_to_all_blogs() {
   foreach($blogs as $blog) {
     switch_to_blog($blog->blog_id);
     wp_cache_flush();
-    syslog(LOG_INFO,"pushing config to {$blog->blog_id}");
+    syslog(LOG_ERR,"pushing config to {$blog->blog_id}");
     s4w_update_option($plugin_s4w_settings);
   }
 
