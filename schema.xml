@@ -89,6 +89,8 @@
 		<field name="permalink" type="string" indexed="true" stored="true"/> 
         <field name="title" type="text_lws" indexed="true" stored="true"/>
 		<field name="content" type="text" indexed="true" stored="true"/>
+		<field name="rawcontent" type="text" indexed="true" stored="true"/>
+		<field name="contentnoshortcodes" type="text" indexed="true" stored="true"/>
 		<field name="numcomments" type="integer" indexed="true" stored="true"/>
 		<field name="comments" type="text" indexed="true" stored="true" multiValued="true"/>
 
