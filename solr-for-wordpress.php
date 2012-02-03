@@ -115,6 +115,9 @@ function s4w_ping_server($server_id = NULL) {
 }
 
 function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
+    global $blog_id;
+    global $current_blog;
+
     $doc = NULL;
     $plugin_s4w_settings = s4w_get_option();
     $exclude_ids = $plugin_s4w_settings['s4w_exclude_pages'];
@@ -224,6 +227,7 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         // this will fire during blog sign up on multisite, not sure why
         _e('Post Information is NULL', 'solr4wp');
     }
+    syslog(LOG_ERR, "built document for $blog_id - $domain$path");
     return $doc;
 }
 
@@ -339,8 +343,8 @@ function s4w_handle_modified( $post_id ) {
     global $current_blog;
     $post_info = get_post( $post_id );
     $plugin_s4w_settings = s4w_get_option();
-    $index_pages = $plugin_s4w_settings['s4w_index_pages'];
-    $index_posts = $plugin_s4w_settings['s4w_index_posts'];
+    $index_pages = $plugin_s4w_settings['s4w_content']['index']['page'];
+    $index_posts = $plugin_s4w_settings['s4w_content']['index']['post'];
     
 	s4w_handle_status_change( $post_id, $post_info );
 
@@ -352,7 +356,7 @@ function s4w_handle_modified( $post_id ) {
         }
         
         $docs = array();
-        $doc = s4w_build_document( $post_info );
+        $doc = s4w_build_document( $post_info , $current_blog->domain , $current_blog->path );
         if ( $doc ) {
             $docs[] = $doc;
             s4w_post( $docs );
