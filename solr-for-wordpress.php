@@ -503,9 +503,7 @@ function s4w_load_all_posts($prev, $type = 'all') {
             // for each blog we need to import we get their id 
             // and tell wordpress to switch to that blog
             $blog_id = trim($bloginfo);
-        if ($blog_id == 2) {
-          continue;
-        }
+
             syslog(LOG_ERR,"switching to blogid $blog_id");
 
             // attempt to save some memory by flushing wordpress's cache
