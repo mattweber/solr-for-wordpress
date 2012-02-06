@@ -361,7 +361,7 @@ function s4w_handle_modified( $post_id ) {
     $index_pages = $plugin_s4w_settings['s4w_content']['index']['page'];
     $index_posts = $plugin_s4w_settings['s4w_content']['index']['post'];
     
-	s4w_handle_status_change( $post_id, $post_info );
+    s4w_handle_status_change( $post_id, $post_info );
 
     if (($index_pages && $post_info->post_type == 'page' && $post_info->post_status == 'publish') || 
         ($index_posts && $post_info->post_type == 'post' && $post_info->post_status == 'publish')) {
@@ -414,6 +414,7 @@ function s4w_handle_status_change( $post_id, $post_info = null ) {
 function s4w_handle_delete( $post_id ) {
     global $current_blog;
     $post_info = get_post( $post_id );
+    syslog(LOG_ERR,"deleting post titled '" . $post_info->post_title . "' for " . $current_blog->domain . $current_blog->path);
     $plugin_s4w_settings = s4w_get_option();
     $delete_page = $plugin_s4w_settings['s4w_delete_page'];
     $delete_post = $plugin_s4w_settings['s4w_delete_post'];
@@ -1465,6 +1466,7 @@ add_action( 'publish_post', 's4w_handle_modified' );
 add_action( 'publish_page', 's4w_handle_modified' );
 add_action( 'save_post', 's4w_handle_modified' );
 add_action( 'delete_post', 's4w_handle_delete' );
+add_action( 'trash_post', 's4w_handle_delete' );
 add_action( 'admin_menu', 's4w_add_pages');
 add_action( 'admin_init', 's4w_options_init');
 add_action( 'widgets_init', 's4w_mlt_widget');
