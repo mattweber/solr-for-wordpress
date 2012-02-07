@@ -128,7 +128,7 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
     if ($post_info) {
         
         # check if we need to exclude this document
-        if (is_multisite() && in_array(substr(site_url(),7) . $post_info->ID, (array)$exclude_ids)) {
+        if (is_multisite() && in_array($current_blog->domain . $post_info->ID, (array)$exclude_ids)) {
             return NULL;
         } else if ( !is_multisite() && in_array($post_info->ID, (array)$exclude_ids) ) {
             return NULL;
