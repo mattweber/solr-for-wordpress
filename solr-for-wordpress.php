@@ -754,6 +754,12 @@ function s4w_search_results() {
                         $pageritm = array();
                         $pageritm['page'] = sprintf(__("%d"), $pagenum);
                         $pagerlink = sprintf(__("?s=%s&offset=%d&count=%d"), urlencode($qry), $offsetnum, $count);
+                        if ($order != "")
+                            $pagerlink .= sprintf("&order=%s",$order);
+                                                    
+                        if ($sort != "") 
+                            $pagerlink .= sprintf("&sort=%s", $sort);
+
                         if($fqstr) $pagerlink .= '&fq=' . $fqstr;
                         $pageritm['link'] = htmlspecialchars($pagerlink);
                         //if server is set add it on the end of the url
