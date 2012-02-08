@@ -241,7 +241,8 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         // this will fire during blog sign up on multisite, not sure why
         _e('Post Information is NULL', 'solr4wp');
     }
-    syslog(LOG_ERR, "built document for $blog_id - $domain$path");
+    syslog(LOG_ERR, "built document for $blog_id - $domain$path with title " .  $post_info->post_title . 
+      " and status of " . $post_info->post_status);
     return $doc;
 }
 
@@ -362,7 +363,8 @@ function s4w_handle_modified( $post_id ) {
     
     s4w_handle_status_change( $post_id, $post_info );
 
-    if (($index_pages && $post_info->post_type == 'page') || ($index_posts && $post_info->post_type == 'post')) {
+    if (($index_pages && $post_info->post_type == 'page' && $post_info->post_status == 'publish') || 
+        ($index_posts && $post_info->post_type == 'post' && $post_info->post_status == 'publish')) {
         
         # make sure this blog is not private or a spam if indexing on a multisite install
         if (is_multisite() && ($current_blog->public != 1 || $current_blog->spam == 1 || $current_blog->archived == 1)) {
