@@ -166,6 +166,14 @@ msgstr ""
 msgid "Solr Path"
 msgstr ""
 
+#: solr-options-page.php:1000
+msgid "Solr Basic Auth Account (optional)"
+msgstr ""
+
+#: solr-options-page.php:1000
+msgid "Solr Basic Auth Password (optional)"
+msgstr ""
+
 #: solr-options-page.php:107
 msgid "Indexing Options"
 msgstr ""

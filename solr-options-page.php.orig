@@ -31,8 +31,8 @@ $post_types = s4w_get_all_post_types();
 if ($s4w_settings['s4w_solr_initialized'] != 1) {
   
   $options['s4w_index_all_sites'] = 0;
-  $options['s4w_server']['info']['single']= array('host'=>'localhost','port'=>8983, 'path'=>'/solr','account'=>null,'password'=>null);
-  $options['s4w_server']['info']['master']= array('host'=>'localhost','port'=>8983, 'path'=>'/solr','account'=>null,'password'=>null);
+  $options['s4w_server']['info']['single']= array('host'=>'localhost','port'=>8983, 'path'=>'/solr');
+  $options['s4w_server']['info']['master']= array('host'=>'localhost','port'=>8983, 'path'=>'/solr');
   $options['s4w_server']['type']['search'] = 'master';
   $options['s4w_server']['type']['update'] = 'master';
   
@@ -211,10 +211,6 @@ if ($_POST['s4w_ping']) {
 			<p><input type="text" name="settings[s4w_server][info][single][port]" value="<?php echo $s4w_settings['s4w_server']['info']['single']['port']?>" /></p>
 			<label><?php _e('Solr Path', 'solr4wp') ?></label>
 			<p><input type="text" name="settings[s4w_server][info][single][path]" value="<?php echo $s4w_settings['s4w_server']['info']['single']['path']?>" /></p>
-			<label><?php _e('Solr Basic Auth Account (optional)', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_server][info][single][account]" value="<?php echo $s4w_settings['s4w_server']['info']['single']['account']?>" /></p>
-			<label><?php _e('Solr Basic Auth Password (optional)', 'solr4wp') ?></label>
-			<p><input type="text" name="settings[s4w_server][info][single][password]" value="<?php echo $s4w_settings['s4w_server']['info']['single']['password']?>" /></p>
 		</div>
 		<div class="solr_adminR2" id="solr_admin_tab3">
 		  <table>
@@ -224,7 +220,7 @@ if ($_POST['s4w_ping']) {
   		    //lets provide an extra fields for extra host on the fly by appending an empty array
   		    //this will always give a count of current servers+1
   		    $serv_count = count($s4w_settings['s4w_server']['info']);
-  		    $s4w_settings['s4w_server']['info'][$serv_count] = array('host'=>'','port'=>'', 'path'=>'', 'account'=>'', 'password'=>'');
+  		    $s4w_settings['s4w_server']['info'][$serv_count] = array('host'=>'','port'=>'', 'path'=>'');
   		    foreach ($s4w_settings['s4w_server']['info'] as $server_id => $server) { 
                       if ($server_id == "single")
                         continue;
@@ -241,10 +237,6 @@ if ($_POST['s4w_ping']) {
     			<p><input type="text" name="settings[s4w_server][info][<?php echo $new_id ?>][port]" value="<?php echo $server['port'] ?>" /></p>
     			<label><?php _e('Solr Path', 'solr4wp') ?></label>
     			<p><input type="text" name="settings[s4w_server][info][<?php echo $new_id ?>][path]" value="<?php echo $server['path'] ?>" /></p>		  
-			    <label><?php _e('Solr Basic Auth Account (optional)', 'solr4wp') ?></label>
-			    <p><input type="text" name="settings[s4w_server][info][single][account]" value="<?php echo $s4w_settings['s4w_server']['info']['single']['account']?>" /></p>
-			    <label><?php _e('Solr Basic Auth Password (optional)', 'solr4wp') ?></label>
-			    <p><input type="text" name="settings[s4w_server][info][single][password]" value="<?php echo $s4w_settings['s4w_server']['info']['single']['password']?>" /></p>
     			</td>
     			<?php 
     			  }

@@ -35,6 +35,8 @@
  * @author Donovan Jimenez <djimenez@conduit-it.com>
  */
 
+// TODO test basic auth
+
 /**
  * Apache_Solr_Service Unit Test
  */
@@ -92,7 +94,7 @@ class Apache_Solr_ServiceTest extends Apache_Solr_ServiceAbstractTest
 	{
 		$newTransport = new Apache_Solr_HttpTransport_Curl();
 		
-		$fixture = new Apache_Solr_Service('localhost', 8180, '/solr/', $newTransport);
+		$fixture = new Apache_Solr_Service('localhost', 8180, '/solr/', null, null, $newTransport);
 		
 		$fixture->setHttpTransport($newTransport);
 		$httpTransport = $fixture->getHttpTransport();
