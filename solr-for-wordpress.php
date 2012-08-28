@@ -1262,9 +1262,9 @@ function s4w_template_redirect() {
     }
     
     // If there is a template file then we use it
-    if (file_exists(TEMPLATEPATH . '/s4w_search.php')) {
+    if (file_exists(STYLESHEETPATH . '/s4w_search.php')) {
         // use theme file
-        include_once(TEMPLATEPATH . '/s4w_search.php');
+        include_once(STYLESHEETPATH . '/s4w_search.php');
     } else if (file_exists(dirname(__FILE__) . '/template/s4w_search.php')) {
         // use plugin supplied file
         add_action('wp_head', 's4w_default_head');
