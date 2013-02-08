@@ -1459,16 +1459,10 @@ function s4w_apply_config_to_blog($blogid) {
  * @return array
  */
 function s4w_get_all_post_types() {
-  global $wpdb;
-  //remove the defualt attachment/revision and menu from the returned types.
-  $query = $wpdb->get_results("SELECT DISTINCT(post_type) FROM $wpdb->posts WHERE post_type NOT IN('attachment', 'revision', 'nav_menu_item') ORDER BY post_type");
-  if ($query) {
-    $types = array();
-    foreach ( $query as $type ) {
-      $types[] = $type->post_type;
-    }       
-    return $types;
-  }
+  //remove the default attachment/revision and menu from the returned types.
+  $posts = get_post_types( array('public' => true) );
+  $posts = array_diff($posts, array('attachment', 'revision', 'nav_menu_item'));
+  return $posts;
 }
 
 add_action( 'template_redirect', 's4w_template_redirect', 1 );
