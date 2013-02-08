@@ -1407,10 +1407,14 @@ function s4w_autocomplete($q, $limit) {
     $params['qt'] = '/terms';
 
     $response = $solr->search($q, 0, $limit, $params);
-    if ( ! $response->getHttpStatus() == 200 ) { 
+    if ( ! $response->getHttpStatus() == 200 ) {
         return;
     }
-    
+
+    if ( empty($response->terms) ) {
+        return;
+    }
+
     $terms = get_object_vars($response->terms->spell);
     foreach($terms as $term => $count) {
         printf("%s\n", $term);
