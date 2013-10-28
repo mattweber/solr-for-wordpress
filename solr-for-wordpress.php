@@ -1041,8 +1041,7 @@ function s4w_master_query($solr, $qry, $offset, $count, $fq, $sortby, &$plugin_s
 
 function s4w_options_init() {
 
-    global $pagenow;
-    if( 'solr-for-wordpress/solr-for-wordpress.php' != $pagenow )
+    if( 'solr-for-wordpress/solr-for-wordpress.php' != $_GET['page'] )
         return;
     
     $method = $_POST['method'];
