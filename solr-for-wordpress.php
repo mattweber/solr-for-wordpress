@@ -1040,6 +1040,12 @@ function s4w_master_query($solr, $qry, $offset, $count, $fq, $sortby, &$plugin_s
 }
 
 function s4w_options_init() {
+
+    if( !isset( $_GET['page'] ) )
+        return;
+
+    if( 'solr-for-wordpress/solr-for-wordpress.php' != $_GET['page'] || 'solr-for-wordpress%2Fsolr-for-wordpress.php' != $_GET['page'] )
+        return;
     
     $method = $_POST['method'];
     if ($method === "load") {
