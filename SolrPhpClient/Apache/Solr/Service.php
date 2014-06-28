@@ -54,7 +54,7 @@ require_once(dirname(__FILE__) . '/HttpTransport/Interface.php');
  * Example Usage:
  * <code>
  * ...
- * $solr = new Apache_Solr_Service(); //or explicitly new Apache_Solr_Service('localhost', 8180, '/solr')
+ * $solr = new Apache_Solr_Service(); //or explicitly new Apache_Solr_Service('localhost', 8180, '/solr', '', '')
  *
  * if ($solr->ping())
  * {
@@ -129,6 +129,13 @@ class Apache_Solr_Service
 	protected $_host, $_port, $_path;
 
 	/**
+	 * Server basic auth  strings (optional)
+	 *
+	 * @var string
+	 */
+	protected $_account, $_password ;
+
+	/**
 	 * Whether {@link Apache_Solr_Response} objects should create {@link Apache_Solr_Document}s in
 	 * the returned parsed data
 	 *
@@ -182,6 +189,13 @@ class Apache_Solr_Service
 	protected $_httpTransport = false;
 
 	/**
+     * HTTP Scheme
+     *
+     * @var string
+     */
+    protected $_scheme = "http://";
+
+	/**
 	 * Escape a value for special query characters such as ':', '(', ')', '*', '?', etc.
 	 *
 	 * NOTE: inside a phrase fewer characters need escaped, use {@link Apache_Solr_Service::escapePhrase()} instead
@@ -230,13 +244,22 @@ class Apache_Solr_Service
 	 * @param string $host
 	 * @param string $port
 	 * @param string $path
+	 * @param string $account
+	 * @param string $password
 	 * @param Apache_Solr_HttpTransport_Interface $httpTransport
 	 */
-	public function __construct($host = 'localhost', $port = 8180, $path = '/solr/', $httpTransport = false)
+	public function __construct($host = 'localhost', $port = 8180, $path = '/solr/', $account = '', $password = '', $httpTransport = false)
 	{
 		$this->setHost($host);
 		$this->setPort($port);
 		$this->setPath($path);
+		$this->setAccount($account);
+		$this->setPassword($password);
+        if ($account) {
+			$this->_scheme = "https://";
+        } else {
+			$this->_scheme = "http://";
+		}
 
 		$this->_initUrls();
 
@@ -274,7 +297,7 @@ class Apache_Solr_Service
 			$queryString = '';
 		}
 
-		return 'http://' . $this->_host . ':' . $this->_port . $this->_path . $servlet . $queryString;
+		return $this->_scheme . $this->_host . ':' . $this->_port . $this->_path . $servlet . $queryString;
 	}
 
 	/**
@@ -330,7 +353,7 @@ class Apache_Solr_Service
 	{
 		$httpTransport = $this->getHttpTransport();
 
-		$httpResponse = $httpTransport->performGetRequest($url, $timeout);
+		$httpResponse = $httpTransport->performGetRequest($url, $timeout, $this->_account, $this->_password);
 		$solrResponse = new Apache_Solr_Response($httpResponse, $this->_createDocuments, $this->_collapseSingleValueArrays);
 
 		if ($solrResponse->getHttpStatus() != 200)
@@ -356,7 +379,7 @@ class Apache_Solr_Service
 	{
 		$httpTransport = $this->getHttpTransport();
 
-		$httpResponse = $httpTransport->performPostRequest($url, $rawPost, $contentType, $timeout);
+		$httpResponse = $httpTransport->performPostRequest($url, $rawPost, $contentType, $timeout, $this->_account, $this->_password);
 		$solrResponse = new Apache_Solr_Response($httpResponse, $this->_createDocuments, $this->_collapseSingleValueArrays);
 
 		if ($solrResponse->getHttpStatus() != 200)
@@ -467,6 +490,66 @@ class Apache_Solr_Service
 	}
 
 	/**
+	 * Get the basic auth account (optional).
+	 *
+	 * @return string
+	 */
+	public function getAccount()
+	{
+		return $this->_account;
+	}
+
+	/**
+	 * Set the account used. If empty will fallback to null
+	 *
+	 * @param string $account
+	 */
+	public function setAccount($account)
+	{
+
+		if (!$account) {
+			$this->_account = null;
+		} else {
+			$this->_account = $account;
+		}
+
+		if ($this->_urlsInited)
+		{
+			$this->_initUrls();
+		}
+	}
+
+	/**
+	 * Get the set basic auth password (optional).
+	 *
+	 * @return string
+	 */
+	public function getPassword()
+	{
+		return $this->_password;
+	}
+
+	/**
+	 * Set the password used. If empty will fallback to null
+	 *
+	 * @param string $password
+	 */
+	public function setPassword($password)
+	{
+
+		if (!$password) {
+			$this->_password = null;
+		} else {
+			$this->_password = $password;
+		}
+
+		if ($this->_urlsInited)
+		{
+			$this->_initUrls();
+		}
+	}
+
+	/**
 	 * Get the current configured HTTP Transport
 	 *
 	 * @return HttpTransportInterface
@@ -476,8 +559,11 @@ class Apache_Solr_Service
 		// lazy load a default if one has not be set
 		if ($this->_httpTransport === false)
 		{
+#			require_once(dirname(__FILE__) . '/HttpTransport/CurlNoReuse.php');
+#			$this->_httpTransport = new Apache_Solr_HttpTransport_CurlNoReuse();
+#			require_once(dirname(__FILE__) . '/HttpTransport/Curl.php');
+#			$this->_httpTransport = new Apache_Solr_HttpTransport_Curl();
 			require_once(dirname(__FILE__) . '/HttpTransport/FileGetContents.php');
-
 			$this->_httpTransport = new Apache_Solr_HttpTransport_FileGetContents();
 		}
 
@@ -629,7 +715,7 @@ class Apache_Solr_Service
 		
 		$httpTransport = $this->getHttpTransport();
 
-		$httpResponse = $httpTransport->performHeadRequest($this->_pingUrl, $timeout);
+		$httpResponse = $httpTransport->performHeadRequest($this->_pingUrl, $timeout, $this->_account, $this->_password);
 		$solrResponse = new Apache_Solr_Response($httpResponse, $this->_createDocuments, $this->_collapseSingleValueArrays);
 
 		if ($solrResponse->getHttpStatus() == 200)
@@ -811,20 +897,18 @@ class Apache_Solr_Service
 	 * Send a commit command.  Will be synchronous unless both wait parameters are set to false.
 	 *
 	 * @param boolean $expungeDeletes Defaults to false, merge segments with deletes away
-	 * @param boolean $waitFlush Defaults to true,  block until index changes are flushed to disk
 	 * @param boolean $waitSearcher Defaults to true, block until a new searcher is opened and registered as the main query searcher, making the changes visible
 	 * @param float $timeout Maximum expected duration (in seconds) of the commit operation on the server (otherwise, will throw a communication exception). Defaults to 1 hour
 	 * @return Apache_Solr_Response
 	 *
 	 * @throws Apache_Solr_HttpTransportException If an error occurs during the service call
 	 */
-	public function commit($expungeDeletes = false, $waitFlush = true, $waitSearcher = true, $timeout = 3600)
+	public function commit($expungeDeletes = false, $waitSearcher = true, $timeout = 3600)
 	{
 		$expungeValue = $expungeDeletes ? 'true' : 'false';
-		$flushValue = $waitFlush ? 'true' : 'false';
 		$searcherValue = $waitSearcher ? 'true' : 'false';
 
-		$rawPost = '<commit expungeDeletes="' . $expungeValue . '" waitFlush="' . $flushValue . '" waitSearcher="' . $searcherValue . '" />';
+		$rawPost = '<commit expungeDeletes="' . $expungeValue . '" waitSearcher="' . $searcherValue . '" />';
 
 		return $this->_sendRawPost($this->_updateUrl, $rawPost, $timeout);
 	}
@@ -1083,7 +1167,7 @@ class Apache_Solr_Service
 		$httpTransport = $this->getHttpTransport();
 		
 		// read the contents of the URL using our configured Http Transport and default timeout
-		$httpResponse = $httpTransport->performGetRequest($url);
+		$httpResponse = $httpTransport->performGetRequest($url, FALSE, $this->_account, $this->_password);
 		
 		// check that its a 200 response
 		if ($httpResponse->getStatusCode() == 200)
@@ -1107,19 +1191,17 @@ class Apache_Solr_Service
 	 * Send an optimize command.  Will be synchronous unless both wait parameters are set
 	 * to false.
 	 *
-	 * @param boolean $waitFlush
 	 * @param boolean $waitSearcher
 	 * @param float $timeout Maximum expected duration of the commit operation on the server (otherwise, will throw a communication exception)
 	 * @return Apache_Solr_Response
 	 *
 	 * @throws Apache_Solr_HttpTransportException If an error occurs during the service call
 	 */
-	public function optimize($waitFlush = true, $waitSearcher = true, $timeout = 3600)
+	public function optimize($waitSearcher = true, $timeout = 3600)
 	{
-		$flushValue = $waitFlush ? 'true' : 'false';
 		$searcherValue = $waitSearcher ? 'true' : 'false';
 
-		$rawPost = '<optimize waitFlush="' . $flushValue . '" waitSearcher="' . $searcherValue . '" />';
+		$rawPost = '<optimize waitSearcher="' . $searcherValue . '" />';
 
 		return $this->_sendRawPost($this->_updateUrl, $rawPost, $timeout);
 	}

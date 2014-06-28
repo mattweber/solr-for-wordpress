@@ -44,6 +44,7 @@ require_once(dirname(__FILE__) . '/Abstract.php');
  * every request. This isn't the recommended way to use curl, but some version of
  * PHP have memory issues.
  */
+
 class Apache_Solr_HttpTransport_CurlNoReuse extends Apache_Solr_HttpTransport_Abstract
 {
 	/**
@@ -56,7 +57,7 @@ class Apache_Solr_HttpTransport_CurlNoReuse extends Apache_Solr_HttpTransport_Ab
 	 */
 	const SVN_ID = '$Id:$';
 
-	public function performGetRequest($url, $timeout = false)
+	public function performGetRequest($url, $timeout = false, $account = null, $password = null)
 	{
 		// check the timeout value
 		if ($timeout === false || $timeout <= 0.0)
@@ -85,6 +86,12 @@ class Apache_Solr_HttpTransport_CurlNoReuse extends Apache_Solr_HttpTransport_Ab
 			CURLOPT_TIMEOUT => $timeout
 		));
 
+		if ($account) {
+			$this->setBasicAuth($curl, $account, $password);
+		} else {
+			// TODO: clear auths
+		}
+
 		// make the request
 		$responseBody = curl_exec($curl);
 
@@ -98,7 +105,7 @@ class Apache_Solr_HttpTransport_CurlNoReuse extends Apache_Solr_HttpTransport_Ab
 		return new Apache_Solr_HttpTransport_Response($statusCode, $contentType, $responseBody);
 	}
 
-	public function performHeadRequest($url, $timeout = false)
+	public function performHeadRequest($url, $timeout = false, $account = null, $password = null)
 	{
 		// check the timeout value
 		if ($timeout === false || $timeout <= 0.0)
@@ -130,6 +137,12 @@ class Apache_Solr_HttpTransport_CurlNoReuse extends Apache_Solr_HttpTransport_Ab
 			CURLOPT_TIMEOUT => $timeout
 		));
 
+		if ($account) {
+			$this->setBasicAuth($curl, $account, $password);
+		} else {
+			// TODO: clear auths
+		}
+
 		// make the request
 		$responseBody = curl_exec($curl);
 
@@ -143,7 +156,7 @@ class Apache_Solr_HttpTransport_CurlNoReuse extends Apache_Solr_HttpTransport_Ab
 		return new Apache_Solr_HttpTransport_Response($statusCode, $contentType, $responseBody);
 	}
 
-	public function performPostRequest($url, $postData, $contentType, $timeout = false)
+	public function performPostRequest($url, $postData, $contentType, $timeout = false, $account = null, $password = null)
 	{
 		// check the timeout value
 		if ($timeout === false || $timeout <= 0.0)
@@ -181,6 +194,12 @@ class Apache_Solr_HttpTransport_CurlNoReuse extends Apache_Solr_HttpTransport_Ab
 			CURLOPT_TIMEOUT => $timeout
 		));
 
+		if ($account) {
+			$this->setBasicAuth($curl, $account, $password);
+		} else {
+			// TODO: clear auths
+		}
+
 		// make the request
 		$responseBody = curl_exec($curl);
 
@@ -192,5 +211,15 @@ class Apache_Solr_HttpTransport_CurlNoReuse extends Apache_Solr_HttpTransport_Ab
 		curl_close($curl);
 
 		return new Apache_Solr_HttpTransport_Response($statusCode, $contentType, $responseBody);
+	}
+	
+	public function setBasicAuth($context, $account, $password) {
+		curl_setopt_array($context, array(
+			// set the Authorization to Basic
+			CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
+
+			// set the Basic Authentication credentials
+			CURLOPT_USERPWD => $account . ":" . $password,
+		));
 	}
 }

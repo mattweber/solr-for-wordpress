@@ -85,22 +85,14 @@ function s4w_get_solr($server_id = NULL) {
   $host = $plugin_s4w_settings['s4w_server']['info'][$server_id]['host'];
   $port = $plugin_s4w_settings['s4w_server']['info'][$server_id]['port'];
   $path = $plugin_s4w_settings['s4w_server']['info'][$server_id]['path'];
-  $account = $plugin_s4w_settings['s4w_server']['info'][$server_id]['account'];
-  $password = $plugin_s4w_settings['s4w_server']['info'][$server_id]['password'];
   # double check everything has been set
   if ( ! ($host and $port and $path) ) {
     syslog(LOG_ERR,"host, port or path are empty, host:$host, port:$port, path:$path");
     return NULL;
   }
 
-  # check basic auth
-  if ( $account and ! $password) {
-    syslog(LOG_ERR,"account:$account needs password");
-    return NULL;
-  }
-
   # create the solr service object
-  $solr = new Apache_Solr_Service($host, $port, $path, $account, $password);
+  $solr = new Apache_Solr_Service($host, $port, $path);
 
   return $solr;
 }
@@ -1048,12 +1040,6 @@ function s4w_master_query($solr, $qry, $offset, $count, $fq, $sortby, &$plugin_s
 }
 
 function s4w_options_init() {
-
-    if( !isset( $_GET['page'] ) )
-        return;
-
-    if( 'solr-for-wordpress/solr-for-wordpress.php' != $_GET['page'] || 'solr-for-wordpress%2Fsolr-for-wordpress.php' != $_GET['page'] )
-        return;
     
     $method = $_POST['method'];
     if ($method === "load") {
@@ -1079,8 +1065,6 @@ function s4w_sanitise_options($options) {
   $options['s4w_solr_host'] = wp_filter_nohtml_kses($options['s4w_solr_host']);
   $options['s4w_solr_port'] = absint($options['s4w_solr_port']);
   $options['s4w_solr_path'] = wp_filter_nohtml_kses($options['s4w_solr_path']);
-  $options['s4w_solr_account'] = wp_filter_nohtml_kses($options['s4w_solr_account']);
-  $options['s4w_solr_password'] = wp_filter_nohtml_kses($options['s4w_solr_password']);
   $options['s4w_solr_update_host'] = wp_filter_nohtml_kses($options['s4w_solr_update_host']);
   $options['s4w_solr_update_port'] = absint($options['s4w_solr_update_port']);
   $options['s4w_solr_update_path'] = wp_filter_nohtml_kses($options['s4w_solr_update_path']);  

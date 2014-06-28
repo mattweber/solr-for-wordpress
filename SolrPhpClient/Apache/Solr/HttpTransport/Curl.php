@@ -91,7 +91,7 @@ class Apache_Solr_HttpTransport_Curl extends Apache_Solr_HttpTransport_Abstract
 		curl_close($this->_curl);
 	}
 
-	public function performGetRequest($url, $timeout = false)
+	public function performGetRequest($url, $timeout = false, $account = null, $password = null)
 	{
 		// check the timeout value
 		if ($timeout === false || $timeout <= 0.0)
@@ -115,6 +115,12 @@ class Apache_Solr_HttpTransport_Curl extends Apache_Solr_HttpTransport_Abstract
 			CURLOPT_TIMEOUT => $timeout
 		));
 
+		if ($account) {
+			$this->setBasicAuth($account, $password);
+		} else {
+			// TODO: clear auths
+		}
+
 		// make the request
 		$responseBody = curl_exec($this->_curl);
 
@@ -125,7 +131,7 @@ class Apache_Solr_HttpTransport_Curl extends Apache_Solr_HttpTransport_Abstract
 		return new Apache_Solr_HttpTransport_Response($statusCode, $contentType, $responseBody);
 	}
 
-	public function performHeadRequest($url, $timeout = false)
+	public function performHeadRequest($url, $timeout = false, $account = null, $password = null)
 	{
 		// check the timeout value
 		if ($timeout === false || $timeout <= 0.0)
@@ -146,6 +152,12 @@ class Apache_Solr_HttpTransport_Curl extends Apache_Solr_HttpTransport_Abstract
 			CURLOPT_TIMEOUT => $timeout
 		));
 
+		if ($account) {
+			$this->setBasicAuth($account, $password);
+		} else {
+			// TODO: clear auths
+		}
+
 		// make the request
 		$responseBody = curl_exec($this->_curl);
 
@@ -156,7 +168,7 @@ class Apache_Solr_HttpTransport_Curl extends Apache_Solr_HttpTransport_Abstract
 		return new Apache_Solr_HttpTransport_Response($statusCode, $contentType, $responseBody);
 	}
 
-	public function performPostRequest($url, $postData, $contentType, $timeout = false)
+	public function performPostRequest($url, $postData, $contentType, $timeout = false, $account = null, $password = null)
 	{
 		// check the timeout value
 		if ($timeout === false || $timeout <= 0.0)
@@ -184,7 +196,14 @@ class Apache_Solr_HttpTransport_Curl extends Apache_Solr_HttpTransport_Abstract
 
 			// set the timeout
 			CURLOPT_TIMEOUT => $timeout
+
 		));
+
+		if ($account) {
+			$this->setBasicAuth($account, $password);
+		} else {
+			// TODO: clear auths
+		}
 
 		// make the request
 		$responseBody = curl_exec($this->_curl);
@@ -194,5 +213,15 @@ class Apache_Solr_HttpTransport_Curl extends Apache_Solr_HttpTransport_Abstract
 		$contentType = curl_getinfo($this->_curl, CURLINFO_CONTENT_TYPE);
 
 		return new Apache_Solr_HttpTransport_Response($statusCode, $contentType, $responseBody);
+	}
+	
+	function setBasicAuth($account, $password) {
+		curl_setopt_array($this->_curl, array(
+			// set the Authorization to Basic
+			CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
+
+			// set the Basic Authentication credentials
+			CURLOPT_USERPWD => $account . ":" . $password,
+		));
 	}
 }

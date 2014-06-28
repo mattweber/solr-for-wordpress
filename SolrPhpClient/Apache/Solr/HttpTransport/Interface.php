@@ -66,9 +66,11 @@ interface Apache_Solr_HttpTransport_Interface
 	 *
 	 * @param string $url
 	 * @param float $timeout
+	 * @param string $account
+	 * @param string $password
 	 * @return Apache_Solr_HttpTransport_Response HTTP response
 	 */
-	public function performGetRequest($url, $timeout = false);
+	public function performGetRequest($url, $timeout = false, $account = null, $password = null);
 	
 	/**
 	 * Perform a HEAD HTTP operation with an optional timeout and return the response
@@ -76,6 +78,8 @@ interface Apache_Solr_HttpTransport_Interface
 	 *
 	 * @param string $url
 	 * @param float $timeout
+	 * @param string $account
+	 * @param string $password
 	 * @return Apache_Solr_HttpTransport_Response HTTP response
 	 */
 	public function performHeadRequest($url, $timeout = false);
@@ -88,7 +92,9 @@ interface Apache_Solr_HttpTransport_Interface
 	 * @param string $rawPost
 	 * @param string $contentType
 	 * @param float $timeout
+	 * @param string $account
+	 * @param string $password
 	 * @return Apache_Solr_HttpTransport_Response HTTP response
 	 */
-	public function performPostRequest($url, $rawPost, $contentType, $timeout = false);
+	public function performPostRequest($url, $rawPost, $contentType, $timeout = false, $account = null, $password = null);
 }

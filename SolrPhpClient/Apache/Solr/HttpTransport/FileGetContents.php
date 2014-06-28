@@ -71,8 +71,23 @@ class Apache_Solr_HttpTransport_FileGetContents extends Apache_Solr_HttpTranspor
 		$this->_postContext = stream_context_create();
 	}
 
-	public function performGetRequest($url, $timeout = false)
+	public function performGetRequest($url, $timeout = false, $account = null, $password = null)
 	{
+		stream_context_set_option($this->_getContext, array(
+				'http' => array(
+					// set HTTP method
+					'method' => 'GET',
+
+					// default timeout
+					'timeout' => $this->getDefaultTimeout(),
+				)
+			)
+		);
+
+		if ($account) {
+			$this->setBasicAuth($this->_getContext, $account, $password);
+		}
+
 		// set the timeout if specified
 		if ($timeout !== FALSE && $timeout > 0.0)
 		{
@@ -97,7 +112,8 @@ class Apache_Solr_HttpTransport_FileGetContents extends Apache_Solr_HttpTranspor
 		return $this->_getResponseFromParts($responseBody, $http_response_header);
 	}
 
-	public function performHeadRequest($url, $timeout = false)
+// TODO	basic auth
+	public function performHeadRequest($url, $timeout = false, $account = null, $password = null)
 	{
 		stream_context_set_option($this->_headContext, array(
 				'http' => array(
@@ -109,6 +125,10 @@ class Apache_Solr_HttpTransport_FileGetContents extends Apache_Solr_HttpTranspor
 				)
 			)
 		);
+
+		if ($account) {
+			$this->setBasicAuth($this->_headContext, $account, $password);
+		}
 
 		// set the timeout if specified
 		if ($timeout !== FALSE && $timeout > 0.0)
@@ -129,7 +149,7 @@ class Apache_Solr_HttpTransport_FileGetContents extends Apache_Solr_HttpTranspor
 		return $this->_getResponseFromParts($responseBody, $http_response_header);
 	}
 	
-	public function performPostRequest($url, $rawPost, $contentType, $timeout = false)
+	public function performPostRequest($url, $rawPost, $contentType, $timeout = false, $account = null, $password = null)
 	{
 		stream_context_set_option($this->_postContext, array(
 				'http' => array(
@@ -143,10 +163,14 @@ class Apache_Solr_HttpTransport_FileGetContents extends Apache_Solr_HttpTranspor
 					'content' => $rawPost,
 
 					// default timeout
-					'timeout' => $this->getDefaultTimeout()
+					'timeout' => $this->getDefaultTimeout(),
 				)
 			)
 		);
+
+		if ($account) {
+			$this->setBasicAuth($this->_postContext, $account, $password, $contentType);
+		}
 
 		// set the timeout if specified
 		if ($timeout !== FALSE && $timeout > 0.0)
@@ -212,5 +236,23 @@ class Apache_Solr_HttpTransport_FileGetContents extends Apache_Solr_HttpTranspor
 		}
 		
 		return new Apache_Solr_HttpTransport_Response($status, $contentType, $rawResponse);
+	}
+
+	function setBasicAuth($context, $account, $password, $contentType = '*/*') {
+			$auth =	"Authorization: Basic " . base64_encode($account . ':' . $password);
+			
+			stream_context_set_option($context, array(
+				'http' => array(
+					// Add authentication and compression 
+					'header' => array(
+					    $auth,
+						"Accept-Encoding: gzip,deflate",
+						"Content-Type: $contentType"
+					),
+
+					// forgive unclean SSH servers
+					'verify_peer' => FALSE,
+					'allow_self_signed' => TRUE,
+			)));
 	}
 }
