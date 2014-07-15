@@ -38,9 +38,10 @@ See FAQ.txt
 ## Installation
 
  1. Upload the `solr-for-wordpress` folder to the `/wp-content/plugins/` directory
- 2. Activate the plugin through the 'Plugins' menu in WordPress
- 3. Configure the plugin with the hostname, port, and URI path to your Solr installation.
- 4. Load all your posts and/or pages via the "Load All Posts" button in the settings page.
+ 2. Using composer, run 'php composer.phar update' to install the Solarium dependency. (see https://getcomposer.org/ for further info on installing this)
+ 3. Activate the plugin through the 'Plugins' menu in WordPress
+ 4. Configure the plugin with the hostname, port, and URI path to your Solr installation.
+ 5. Load all your posts and/or pages via the "Load All Posts" button in the settings page.
 
 ##  Custom Theme Integration 
 
